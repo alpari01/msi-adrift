@@ -1,6 +1,6 @@
 FROM opendrift/opendrift
 
-MAINTAINER diego.pereiro@marine.ie
+MAINTAINER alpari@taltech.ee
 
 RUN conda config --set solver libmamba
 
