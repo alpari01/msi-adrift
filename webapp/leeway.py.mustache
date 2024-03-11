@@ -1,27 +1,10 @@
 from opendrift.models.leeway import Leeway
-from opendrift.readers import reader_global_landmask
 from opendrift.readers import reader_netCDF_CF_generic
 from opendrift.readers import reader_ROMS_native
-from datetime import datetime, timedelta, timezone
-import pytz
+from datetime import datetime, timedelta
+import dateutil.parser
 
-landmask = reader_global_landmask.Reader()
-
-def string2utc(string):
-    ''' Convert datetime string to UTC '''
-
-    # Convert string to datetime object
-    dt = datetime.fromisoformat(string)
-
-    # Convert to datetime-aware    
-    dt = pytz.timezone("Europe/Dublin").localize(dt)
-    
-    # Convert to UTC
-    utc = dt.astimezone(timezone.utc)
-    
-    y, m, d, H, M = utc.year, utc.month, utc.day, utc.hour, utc.minute
-    
-    return datetime(y, m , d, H, M)
+print('setting up leeway model...')
 
 filename = '{{nc_output_path}}'
 
@@ -33,36 +16,28 @@ latitude = {{latitude}}
 N = {{number_of_particles}}
 
 # Date
-itime = string2utc("{{idate}}")
-etime = string2utc("{{edate}}")
+start_time = datetime({{start_time_datetime}})
+end_time = datetime({{end_time_datetime}})
     
 # Radius for uniform dispersion around source [meters]
 R = {{radius}}
 
-# End time of simulation
-end_time = string2utc("{{end_of_run}}")
+
     
 """ Model initialization """
-model = Leeway(loglevel=20); model.set_config('general:use_auto_landmask', False)
-
+model = Leeway(loglevel=0)
+model.set_config('general:use_auto_landmask', False)
 """ Add readers """
 # Ocean data
-NEA = reader_ROMS_native.Reader('http://milas.marine.ie/thredds/dodsC/IMI_ROMS_HYDRO/NEATLANTIC_NATIVE_2KM_40L_1H/COMBINED_AGGREGATION' )
-
-Connemara = reader_ROMS_native.Reader('http://milas.marine.ie/thredds/dodsC/IMI_ROMS_HYDRO/CONNEMARA_250M_20L_1H/COMBINED_AGGREGATION' )
-
-Galway_Bay = reader_ROMS_native.Reader('http://milas.marine.ie/thredds/dodsC/IMI_ROMS_HYDRO/GALWAY_BAY_NATIVE_70M_8L_1H/COMBINED_AGGREGATION' )
-
-Bantry_Bay = reader_ROMS_native.Reader('http://milas.marine.ie/thredds/dodsC/IMI_ROMS_HYDRO/BANTRY_BAY_NATIVE_250M_20L_1H/COMBINED_AGGREGATION' )
-
-wind = reader_netCDF_CF_generic.Reader('http://milas.marine.ie/thredds/dodsC/adrift_wind/adrift_wind_aggregate.nc')
+print('fetching {{opendap_url}}')
+phys = reader_ROMS_native.Reader('{{opendap_url}}')
+print('fetching {{wind_url}}')
+wind = reader_netCDF_CF_generic.Reader('{{wind_url}}')
 
 # Adding readers
-model.add_reader([wind, Galway_Bay, Connemara, Bantry_Bay, landmask, NEA])
+model.add_reader([phys,wind])
 
 object_type = {{object_type}} # {{object_type_key}} {{object_type_description}}
-
-model.set_config('general:coastline_action', 'previous')
 
 """ Seed elements """
 model.seed_elements(lon=longitude,
@@ -70,20 +45,25 @@ model.seed_elements(lon=longitude,
                 number=N,
                 radius=R,
                 radius_type="uniform",
-                time=[itime, etime],
+                time=start_time,
                 object_type=object_type
                 )
 
         
 """ Model run """
+print('starting model run')
 model.run(end_time=end_time, 
-        time_step=timedelta(minutes=5), 
-        time_step_output=timedelta(minutes=15), 
+        time_step=timedelta(minutes=10), 
+        time_step_output=timedelta(minutes=10), 
         outfile=filename,
         export_variables=["trajectory", 
                             "time", 
-                            "status", "object_type",
+                            "status",
                             "age_seconds",
                             "lon", 
                             "lat"]
         )
+
+#(times,a) = lw.get_time_array()
+#(lats,lons) = lw.get_lonlats()
+print('finished model run')
