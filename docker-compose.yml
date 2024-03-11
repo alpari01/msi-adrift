@@ -1,0 +1,6 @@
+version: "1.0"
+services:
+  msi-adrift:
+    build: .
+    ports:
+      - "5000:5000"
