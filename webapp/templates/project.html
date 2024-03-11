@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>projection</title>
+
+<meta charset="utf-8">
+<link rel="icon" href="/static/img/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico" />
+<link rel="stylesheet" href="/static/css/leaflet.css" />
+<script src="/static/js/leaflet.js"></script>
+<script src="/static/js/jquery.min.js"></script>
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<link rel="stylesheet" href="/static/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="/static/css/bootstrap-editable.css">
+<script src="/static/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="/static/css/leaflet.timedimension.control.min.css" />
+<script type="text/javascript" src="/static/js/leaflet.timedimension.min.js"></script>
+<script type="text/javascript" src="/static/js/iso8601.js"></script>
+<script type="text/javascript" src="/static/js/iso8601.min.js"></script>
+<script type="text/javascript" src="/static/js/heatmap.min.js"></script>
+<script type="text/javascript" src="/static/js/leaflet-heatmap.js"></script>
+<!--
+<script type="text/javascript" src="/static/js/dotter.js"></script>
+<script type="text/javascript" src="/static/js/leaflet-particle-dot.js"></script>
+-->
+<script type="text/javascript" src="/static/js/Leaflet.CanvasLayer.js"></script>
+<link rel="stylesheet" href="/static/css/Leaflet.Coordinates-0.1.5.css" />
+<script type="text/javascript" src="/static/js/Leaflet.Coordinates-0.1.5.min.js"></script>
+<script type="text/javascript" src="/static/js/Leaflet.TimeDimension.sodaHeatMap.js"></script>
+<script src="/static/js/bootstrap-editable.min.js"></script>
+<script src="times.json"></script>
+<style>
+.map { height: 600px; width: 800px;}
+.searchBoxLabel {
+  color: red;
+  background-color: rgba(255, 0, 0, 0.05);
+  border: 1px;
+}
+
+</style>
+<script>
+$.fn.editable.defaults.mode = 'inline';
+var map = undefined;
+var controlLayer = undefined;
+$(document).ready(function(){
+  $.ajax({url: "context.json", cache: false}).done(function(data){
+    document.title = data.project_name;
+    var keys = Object.keys(data);
+    for(var i=0;i<keys.length;i++){
+      var key = keys[i];
+      $("#ctx_"+key).text(data[key]);
+    }
+    $("#ctx_project_name").editable({
+      type: 'text',
+      pk: 1,
+      url: 'update',
+      success: ()=>setTimeout(()=>{document.title = $("#ctx_project_name").text()},0)
+    });
+  });
+  $.ajax({url: "timepoints.json"}).done(function(series){
+     var times = [];
+     var date = new Date();
+     for(var i=0;i<series.length;i++){
+       date.setISO8601(series[i].timestamp);
+       times.push(date.getTime()); 
+     }
+     map = create_timeseries_play_map(times,series);
+     $.ajax({url: "/static/js/gb-search-areas.json"}).done(function(features){
+        var searchBoxes = L.geoJSON(features,{
+                       onEachFeature: labelSearchBox
+                      });
+         controlLayer.addOverlay(searchBoxes,"Search Areas");
+
+     });
+  });
+   
+});
+
+function labelSearchBox(feature,layer){
+    layer.bindTooltip(feature.properties.name, {
+      permanent: true, direction:"center", className: "searchBoxLabel"
+    });//.openTooltip();
+}
+
+</script>
+</head>
+<body>
+<div class="container">
+<h1><a href="/">ADRIFT</a></h1>
+<p class="lead"><a href="http://www.marine.ie/">Marine Institute</a> predicted sea surface tracking.</p>
+<h3 id="ctx_project_name"></h3>
+<div class="row">
+</div>
+<div class="row">
+  <div id="play_map" class="map col-md-9"></div>
+  <div class='col-md-3'>
+   <h3>Project Details</h3>
+   <div class='table-responsive'>
+    <table class="table">
+      <tr><th class="text-right">Created</th><td id="ctx_created_time"></td></tr>
+      <tr><th class="text-right">Start</th><td id="ctx_start_time"></td></tr>
+      <tr><th class="text-right">End</th><td id="ctx_end_time"></td></tr>
+      <tr><th class="text-right">Location</th><td>{{latitude}}, {{longitude}}</td></tr>
+      <tr><th class="text-right">Radius</th><td id="ctx_radius"></td></tr>
+      <tr><th class="text-right">Particles</th><td id="ctx_number_of_particles"></td></tr>
+      <tr><th class="text-right">Model</th><td id="ctx_model"></td></tr>
+      <tr><th class="text-right">Drifter</th><td id="ctx_drifter"></td></tr>
+    </table>
+   </div>
+   <h3>Current Display</h3>
+   <div class='table-responsive'>
+    <table class="table">
+      <tr><th class="text-right">UTC Time</th><td id="utctime"></td></tr>
+      <tr><th class="text-right">Local Time</th><td id="localtime"></td></tr>
+    </table>
+   </div>
+   <h3>Downloads</h3>
+   <div class='table-responsive'>
+    <table id="downloads" class="table">
+     <tr><td><a href="output.nc">Generated NetCDF File</td></tr>
+    </table>
+   </div>
+  </div>
+</div>
+<script>
+var current_draw = 0;
+var colour_layer = function(series){
+  return {
+     draw_points: function(this_draw,series,i,info,canvasWidth,canvasData){
+       if( i== series.length || this_draw != current_draw){
+         if(this_draw == current_draw){
+           var ctx = info.canvas.getContext('2d');
+           ctx.putImageData(canvasData,0,0);
+         }
+         return;
+       }
+       var color1 = '1111FF';
+       var color2 = 'FFFFFF';
+       var ratio = (i+1)/series.length;
+       var r = Math.ceil(parseInt(color2.substring(0,2), 16) * ratio + parseInt(color1.substring(0,2), 16) * (1-ratio));
+       var g = Math.ceil(parseInt(color2.substring(2,4), 16) * ratio + parseInt(color1.substring(2,4), 16) * (1-ratio));
+       var b = Math.ceil(parseInt(color2.substring(4,6), 16) * ratio + parseInt(color1.substring(4,6), 16) * (1-ratio));
+       var a = 255;//130 + Math.round(ratio*125);
+       var points = series[i].points;
+       for(var j=0;j<points.length;j++){
+          if(info.bounds.contains([points[j][0],points[j][1]])){
+              var dot = info.layer._map.latLngToContainerPoint([points[j][0], points[j][1]]);
+              var index = (dot.x+dot.y*canvasWidth)*4;
+              if(canvasData.data[index + 3] == 0){
+                canvasData.data[index + 0] = r;
+                canvasData.data[index + 1] = g;
+                canvasData.data[index + 2] = b;
+                canvasData.data[index + 3] = a;
+             }
+          }
+       }
+       //var ctx = info.canvas.getContext('2d');
+       //ctx.putImageData(canvasData,0,0);
+       //setTimeout(this.draw_points.bind(this,this_draw,series,i+1,info,canvasWidth,canvasData),Math.round(1000/series.length));
+       setTimeout(this.draw_points.bind(this,this_draw,series,i+1,info,canvasWidth,canvasData),0);
+     },
+     onDrawLayer: function(info){
+         var this_draw = ++current_draw;
+         var ctx = info.canvas.getContext('2d');
+         var canvasWidth = info.canvas.width;
+         var canvasHeight = info.canvas.height;
+         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+         var canvasData = ctx.getImageData(0,0,canvasWidth,canvasHeight);
+         //setTimeout(this.draw_points.bind(this,this_draw,series,0,info,canvasWidth,canvasData),2000);
+         setTimeout(this.draw_points.bind(this,this_draw,series,0,info,canvasWidth,canvasData),0);
+      }
+  };
+}
+
+var create_timeseries_play_map = function(times,series){
+    var map = L.map('play_map', {
+      zoom: 13,
+      fullscreenControl: true,
+      center: [{{latitude}}, {{longitude}}]
+   });
+  var colourLayer = L.canvasLayer().delegate(colour_layer(series));
+  colourLayer.addTo(map);
+
+    var timeDimension = new L.TimeDimension({
+         times: times,
+         series: series,
+         currentTime: times[0]
+    });
+    map.timeDimension = timeDimension;
+    var player = new L.TimeDimension.Player({
+        transitionTime: 500,
+        loop: false,
+        buffer: 1
+    }, timeDimension);
+    var timeDimensionControlOptions = {
+          position: 'bottomleft',
+          autoPlay: false,
+          timeSlider: true,
+          loopButton: true,
+          speedSlider: false,
+          player: player
+    };
+    var timeDimensionControl = new L.Control.TimeDimension(timeDimensionControlOptions);
+    map.addControl(timeDimensionControl);
+/*
+    var map = L.map('play_map', {
+      zoom: 13,
+      fullscreenControl: true,
+      center: [{{latitude}}, {{longitude}}],
+      timeDimensionControl: true,
+      timeDimensionControlOptions: {
+          position: 'bottomleft',
+          autoPlay: false,
+          timeSlider: true,
+          loopButton: true,
+          speedSlider: false,
+          playerOptions: {
+              transitionTime: 500,
+              loop: false,
+              buffer: 1
+          }
+      },
+      timeDimension: true,
+      timeDimensionOptions: {
+         times: times,
+         series: series,
+         currentTime: times[0]
+      },
+     });
+*/
+  var tiles = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
+  L.control.coordinates({
+    position: "bottomright",
+    decimals: 3,
+    labelTemplateLat: "Latitude: {y}",
+    labelTemplateLng: "Longitude: {x}",
+    useDMS: false,
+    enableUserInput: false
+  }).addTo(map);
+  var heatMapLayer = L.timeDimension.layer.sodaHeatMap();
+  heatMapLayer.addTo(map);
+  controlLayer = L.control.layers({},{"Particles": colourLayer,"Heat Map": heatMapLayer});
+  controlLayer.addTo(map);
+  return map;
+}
+
+</script>
+</div>
+</body>
+</html>
+~
+
