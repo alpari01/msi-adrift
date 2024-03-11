@@ -11,16 +11,12 @@ import codecs
 import sys
 import os
 from processify import processify
-from cleaner import cleaner
 import subprocess
 import shutil
 from operator import itemgetter
 import traceback
 from opendrift.models.leeway import Leeway
 from opendrift.readers import reader_netCDF_CF_generic
-from shapely.geometry import Point
-from shapely.geometry.polygon import Polygon
-from scipy.interpolate import NearestNDInterpolator
 import math
 import re
 from threading import Thread
@@ -31,6 +27,7 @@ LEEWAY_OBJECTS = []
 def _init():
   global LEEWAY_OBJECTS
   l = Leeway()
+  l.set_config('general:use_auto_landmask', False)
   LEEWAY_OBJECTS = [{
     'OBJKEY': l.leewayprop[item]['OBJKEY'],
     'Description': l.leewayprop[item]['Description'] 
@@ -41,9 +38,12 @@ def create_app():
   _init()
   app = Flask(__name__)
 
+
   @app.route('/')
   def index():
-      return render_template('index.html')
+      models = sorted([model for key, model in _models().items()],
+              key=lambda x: x['name'])
+      return render_template('index.html', models=models)
 
   def _models():
     with open("models.json") as f:
@@ -87,9 +87,17 @@ def create_app():
       return send_file("/output/{0}/{1}".format(project,file))
 
   @app.route('/project/new', methods=['GET','POST'])
-  def show_new(w1=False, w2=False, w3=False):
+  def show_new():
       context = None
-      model = 'neatl'
+      model = request.values.get('model','undefined')
+      if model == 'undefined':
+        copy = request.values.get('copy','undefined')
+        if copy == 'undefined':
+          return redirect("/")
+        context_file_path = "{0}/context.json".format(copy)
+        with open(context_file_path) as f:
+          context = json.load(f)
+          model = context["model"]
       metadata = _models()
       if not model in metadata:
         return redirect("/")
@@ -98,10 +106,6 @@ def create_app():
       latitude = info["defaults"]["latitude"]
       longitude = info["defaults"]["longitude"]
       start_time = time_min
-      end_time_in_dropdown_list = time_max
-      now = datetime.datetime.now();
-      today = datetime.datetime(now.year, now.month, now.day) - datetime.timedelta(hours=1)
-      today = "{0}Z".format(today).replace(" ", "T")
       radius = 250
       duration = "12 hours"
       if context != None:
@@ -119,7 +123,7 @@ def create_app():
         duration = re.sub(r"\b0+","",duration)
       return render_template('new.html',
                model=model,
-               latitude=53.2,
+               latitude=latitude,
                latitude_min = lat_min,
                latitude_max = lat_max,
                longitude_min = lon_min,
@@ -129,15 +133,11 @@ def create_app():
                duration = duration,
                radius = radius,
                start_time = start_time,
-               end_time = end_time_in_dropdown_list,
-               today = today,
-               longitude=-9,
-               w1=w1, w2=w2, w3=w3,
+               longitude=longitude,
                polygon=json.dumps([list(p) for p in polygon]))
 
   @app.route('/project/<path:project>/')
   def show_status(project):
-      cleaner()
       return render_template('status.html')
 
   def list_leeway_objects():
@@ -160,28 +160,9 @@ def create_app():
        items.append(v)
     return jsonify(items)
 
-
-  def fix_adrift_times(times):
-    ''' This function makes sure that the times (expressed as Dublin time), go
-    from 12:00 AM to 12:00 AM, since this makes it easier to use the calendar
-    forms. Also, it gets rid of the earliest part of the time record, to prevent
-    users from requesting too long simulations, which causes storage issues in the
-    Docker container. '''
-    
-    ndays = 21 # Maximum number of days allowed in the calendar
-    
-    # Times in the ROMS model are in UTC. Find latest time step with 23:00 UTC.
-    for i, time in enumerate(reversed(times)):
-        if time.hour == 23: break
-    # Number of time steps in the returned time list
-    nsteps = ndays * 24 + 1
-    # Subset time and return
-    return times[-i-nsteps:-i]
-
   def _get_times(cdf,var_time):
     units = cdf.variables[var_time].units
     times = [netCDF4.num2date(t,units) for t in cdf.variables[var_time]]
-    times = fix_adrift_times(times)
     return ["{0}Z".format(t).replace(" ","T") for t in times]
 
   def _range(model):
@@ -326,56 +307,6 @@ def create_app():
       })
 
 
-  def inputCheck(longitude, latitude, idate, edate, end_of_run):
-
-      f = open('/input/inputCheck.txt', 'w'); f.write('Running input tests...\n')
-
-      with netCDF4.Dataset('http://milas.marine.ie/thredds/dodsC/IMI_ROMS_HYDRO/NEATLANTIC_NATIVE_2KM_40L_1H/COMBINED_AGGREGATION') as nc:
-          lon_rho = nc.variables['lon_rho'][:]
-          lat_rho = nc.variables['lat_rho'][:]
-
-      w1 = False
-
-      # NEA domain polygon
-      x = [lon_rho[0,0], lon_rho[-1,0], lon_rho[-1,-1], lon_rho[0,-1]]
-      y = [lat_rho[0,0], lat_rho[-1,0], lat_rho[-1,-1], lat_rho[0,-1]]
-      polygon = Polygon([(x[0],y[0]), (x[1],y[1]), (x[2],y[2]), (x[3],y[3])])
-
-      # Check point is within NEA domain
-      point = Point(longitude, latitude)
-
-      f.write('Testing marker inside domain...\n')
-      if not polygon.contains(point):
-          f.write('WARNING! Marker is outside domain!\n')
-          w1 = True # Point is not inside NEA domain
-
-      if not w1:
-          f.write('Testing marker is west of Great Britain...\n')
-          if ( latitude > 50.9 )  and (longitude > -2.5 ):
-              f.write('Warning! Marker is east of Great Britain!\n')
-              w1 = True # Point is east of Great Britain
-          if ( latitude > 55.9 )  and (longitude > -4.1 ):
-              f.write('Warning! Marker is east of Great Britain!\n')
-              w1 = True # Point is east of Great Britain
-
-      idate = datetime.datetime.strptime(idate, '%Y-%m-%d %H:%M')
-      edate = datetime.datetime.strptime(edate, '%Y-%m-%d %H:%M')
-      end_of_run = datetime.datetime.strptime(end_of_run, '%Y-%m-%d %H:%M')
-      
-      w2 = False
-      f.write('Testing right order of START and END...\n')
-      if edate < idate:
-          f.write('WARNING! END if before START!\n')
-          w2 = True
-
-      w3 = False
-      f.write('Testing END of RUN is later than release time...\n')
-      if ( end_of_run <= idate ) or ( end_of_run <= edate ):
-          f.write('WARNING! END of RUN is before release time!\n')
-          w3 = True
-
-      f.close()
-      return w1, w2, w3
 
   @app.route('/api/model/<model>/projection', methods=["GET","POST"])
   def projection(model):
@@ -394,19 +325,6 @@ def create_app():
     leeway_object = next(filter(lambda x: x["index"] == object_type, list_leeway_objects()), None)
     object_type_description = leeway_object["description"]
     object_type_key = leeway_object["key"]
-    
-    #################################################################################################################    
-    unique_release_time = dateutil.parser.parse(request.values.get('start_time_picker',time_min)).strftime('%Y-%m-%d %H:%M')
-    idate = dateutil.parser.parse(request.values.get('start_time_picker2',time_min)).strftime('%Y-%m-%d %H:%M')
-    edate = dateutil.parser.parse(request.values.get('start_time_picker3',time_min)).strftime('%Y-%m-%d %H:%M')
-    end_of_run = dateutil.parser.parse(request.values.get('start_time_picker4',time_min)).strftime('%Y-%m-%d %H:%M')
-        
-    ''' Type of release (exact time or over time interval '''
-    release_mode = request.form.get('timetype')
-    if release_mode == "Exact time":
-        idate, edate = unique_release_time, unique_release_time        
-    ##################################################################################################################
-
     start_release_time = dateutil.parser.parse(request.values.get('start_time',time_min))
     project_name = request.values.get('project_name',
                   '{0} {1}'.format(start_release_time.strftime("%Y-%m-%d %H:%M"),object_type_key))
@@ -414,60 +332,6 @@ def create_app():
     end_time = dateutil.parser.parse(request.values.get('end_time',time_max))
     latitude = float(request.values.get('latitude',defaults["latitude"]))
     longitude = float(request.values.get('longitude',defaults["longitude"]))
-
-    ''' INPUT CHECK FUNCTION HERE. RETURN HTML with warnings if tests are wrong. Continue with processing otherwise '''
-    w1, w2, w3 = inputCheck(longitude, latitude, idate, edate, end_of_run)
-    if ( w1 or w2 or w3 ) : 
-        context = None
-        model = 'neatl'
-        metadata = _models()
-        if not model in metadata:
-           return redirect("/")
-        info = metadata[model]
-        (time_min,time_max,lat_min,lat_max,lon_min,lon_max,polygon) = _range(model)
-        latitude = info["defaults"]["latitude"]
-        longitude = info["defaults"]["longitude"]
-        start_time = time_min
-        end_time_in_dropdown_list = time_max
-        now = datetime.datetime.now(); 
-        today = datetime.datetime(now.year, now.month, now.day) - datetime.timedelta(hours=1)
-        today = "{0}Z".format(today).replace(" ", "T")
-        radius = 250
-        duration = "12 hours"
-        if context != None:
-          latitude = context["latitude"]
-          longitude = context["longitude"]
-          start_time = context["start_time"]
-          radius = context["radius"]
-          human_start_time = start_time
-          duration = context["duration"]\
-                    .replace("day(s)", "days")\
-                    .replace("hour(s)", "hours")\
-                    .replace("minute(s)", "minutes")\
-                    .replace("0000 days ", "")\
-                    .replace(" 00 minutes", "")
-          duration = re.sub(r"\b0+","",duration)
-        return render_template('new.html',
-               model=model,
-               latitude=53.2,
-               latitude_min = lat_min,
-               latitude_max = lat_max,
-               longitude_min = lon_min,
-               longitude_max = lon_max,
-               date_min = time_min,
-               date_max = time_max,
-               duration = duration,
-               radius = radius,
-               start_time = start_time,
-               end_time = end_time_in_dropdown_list,
-               today = today,
-               longitude=-9,
-               w1=w1, w2=w2, w3=w3,
-               polygon=json.dumps([list(p) for p in polygon]))
-
-        #return send_file('/input/inputCheck.txt', as_attachment=True)
-        #show_new(w1=w1, w2=w2, w3=w3)
-
     number_of_particles = int(request.values.get('number_of_particles','1000'))
     radius = float(request.values.get('radius','250'))
     depth = float(request.values.get('depth','0'))
@@ -491,7 +355,6 @@ def create_app():
              'latitude': latitude,
              'longitude': longitude,
              'beginning': beginning,
-             'idate': idate, 'edate': edate, 'end_of_run': end_of_run,
              'duration': duration,
              'input_path': input_path,
              'output_path': output_path,
@@ -660,23 +523,19 @@ def create_app():
     with open(times_output_path,'w') as f:
         json.dump(times,f)
 
-    ''' 
     overwrite_json_file(status_output_path,"writing geo.json")
     with open(geojson_output_path,'w') as myfile:
       json.dump(points,myfile)
-    ''' 
 
     overwrite_json_file(status_output_path,"writing timepoints.json")
     with open(json_output_path,'w') as myfile:
       json.dump(points2,myfile)
 
-    '''
     overwrite_json_file(status_output_path,"writing projection.js")
     with open(js_output_path,'w') as f:
       f.write("projection=");
       json.dump(points,f)
       f.write(";\n");
-    '''
 
     overwrite_json_file(status_output_path,"Finished")
 
@@ -721,4 +580,4 @@ def create_app():
 
 if __name__ == '__main__':
   app = create_app()
-  app.run(debug=False, host='0.0.0.0')
+  app.run(host='0.0.0.0')
