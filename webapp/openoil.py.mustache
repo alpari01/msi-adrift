@@ -1,0 +1,62 @@
+from datetime import datetime, timedelta
+from opendrift.readers import reader_netCDF_CF_generic
+from opendrift.readers import reader_ROMS_native
+from opendrift.models.openoil import OpenOil
+import dateutil.parser
+
+print('setting up openoil model...')
+
+filename = '{{nc_output_path}}'
+
+longitude = {{longitude}}
+latitude = {{latitude}}
+
+N = {{number_of_particles}}
+
+start_time = datetime({{start_time_datetime}})
+end_time = datetime({{end_time_datetime}})
+
+R = {{radius}}
+
+model = OpenOil(loglevel=20, weathering_model='noaa')
+
+model.set_config('general:use_auto_landmask', False)
+model.set_config('processes:evaporation',  True)
+model.set_config('processes:emulsification',  True)
+model.set_config('drift:vertical_mixing',  True)
+model.set_config('vertical_mixing:timestep',  5)
+
+print('fetching {{opendap_url}}')
+phys = reader_ROMS_native.Reader('{{opendap_url}}')
+print('fetching {{wind_url}}')
+wind = reader_netCDF_CF_generic.Reader('{{wind_url}}')
+
+model.add_reader([phys,wind])
+
+object_type = {{object_type}} # {{object_type_key}} {{object_type_description}}
+
+# TODO: arome model required?
+
+model.seed_elements(lon=longitude,
+                lat=latitude,
+                number=N,
+                radius=R,
+                radius_type="uniform",
+                time=start_time,
+                oil_type="GULLFAKS, EXXON"
+                )
+
+print('starting model run')
+model.run(end_time=end_time,
+        time_step=timedelta(minutes=10),
+        time_step_output=timedelta(minutes=10),
+        outfile=filename,
+        export_variables=["trajectory",
+                            "time",
+                            "status",
+                            "age_seconds",
+                            "lon",
+                            "lat"]
+        )
+
+print('finished model run')
