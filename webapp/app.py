@@ -40,20 +40,10 @@ def _init():
 
     # create objects for OpenOil model
     global OPENOIL_OBJECTS
-
-    # use 0 for full output, use 20 to get min output data, use 50 for no output
-    openoil_model = OpenOil(loglevel=0, weathering_model='noaa')
-    # openoil_model.set_config('general:use_auto_landmask', False)
-
+    openoil_model = OpenOil()
     OPENOIL_OBJECTS = [{
-        'OBJKEY': objkey,
-        'Name': name
-    } for objkey, name in enumerate(openoil_model.oiltypes)]
-
-    openoil_model.set_config('processes:evaporation', True)
-    openoil_model.set_config('processes:emulsification', True)
-    openoil_model.set_config('drift:vertical_mixing', True)
-    openoil_model.set_config('vertical_mixing:timestep', 5)
+        'OBJKEY': name,
+    } for i, name in enumerate(openoil_model.oiltypes)]
 
 
 def create_app():
@@ -109,35 +99,46 @@ def create_app():
     @app.route('/project/new', methods=['GET', 'POST'])
     def show_new():
         context = None
+
         model = request.values.get('model', 'undefined')
+
         print("Called /project/new")
         print(f"Model: {model}, type: {type(model)}")
+
         if model == 'undefined':
             copy = request.values.get('copy', 'undefined')
+
             if copy == 'undefined':
                 return redirect("/")
+
             context_file_path = "{0}/context.json".format(copy)
             with open(context_file_path) as f:
                 context = json.load(f)
                 model = context["model"]
+
         metadata = _models()
         print(f"Metadata: {json.dumps(metadata)}")
         if not model in metadata:
             return redirect("/")
+
         info = metadata[model]
+
         print(f"Info: {json.dumps(info)}")
+
         (time_min, time_max, lat_min, lat_max, lon_min, lon_max, polygon) = _range(model)
         latitude = info["defaults"]["latitude"]
         longitude = info["defaults"]["longitude"]
         start_time = time_min
         radius = 250
         duration = "12 hours"
+
         if context != None:
             latitude = context["latitude"]
             longitude = context["longitude"]
             start_time = context["start_time"]
             radius = context["radius"]
             human_start_time = start_time
+
             duration = context["duration"] \
                 .replace("day(s)", "days") \
                 .replace("hour(s)", "hours") \
@@ -145,6 +146,7 @@ def create_app():
                 .replace("0000 days ", "") \
                 .replace(" 00 minutes", "")
             duration = re.sub(r"\b0+", "", duration)
+
         return render_template('new.html',
                                model=model,
                                latitude=latitude,
@@ -180,10 +182,8 @@ def create_app():
     def list_openoil_objects():
         lo = [{"index": i + 1,
                "key": o["OBJKEY"],
-               "name": o["Name"],
-               "label": "{0} {1}".format(o["OBJKEY"], o["Name"])}
+               "label": "{0} {1}".format(i + 1, o["OBJKEY"])}
               for i, o in enumerate(OPENOIL_OBJECTS)]
-
         return lo
 
 
@@ -385,17 +385,36 @@ def create_app():
         print("======================================DEBUG")
         print("======================================DEBUG")
         print("Called /api/model/<model>/projection")
+        print(f"using model: {model}")
 
-        object_type = int(request.values.get('object_type', '1'))
+        model_type = model.split("_")[-1].lower()
+
+        object_type = None
+        object_type_key = None
+        object_type_description = None
+        object_drifter = None
+
+        if model_type == "leeway":
+            object_type = int(request.values.get('object_type', '1'))
+
+            object_drifter = next(filter(lambda x: x["index"] == object_type, list_leeway_objects()), None)
+
+            object_type_description = object_drifter["description"]
+
+            object_type_key = object_drifter["key"]
+
+        elif model_type == "openoil":
+            object_type = int(request.values.get('object_type', '1'))
+
+            object_drifter = next(filter(lambda x: x["index"] == object_type, list_openoil_objects()), None)
+
+            object_type_description = ""
+
+            object_type_key = object_drifter["key"]
+
         print(f"object type: {object_type}")
-
-        leeway_object = next(filter(lambda x: x["index"] == object_type, list_leeway_objects()), None)
-        print(f"leeway object: {leeway_object}")
-
-        object_type_description = leeway_object["description"]
+        print(f"object_drifter: {object_drifter}")
         print(f"object type description: {object_type_description}")
-
-        object_type_key = leeway_object["key"]
         print(f"object type key: {object_type_key}")
 
         start_release_time = dateutil.parser.parse(request.values.get('start_time', time_min))
@@ -410,10 +429,13 @@ def create_app():
         longitude = float(request.values.get('longitude', defaults["longitude"]))
 
         number_of_particles = int(request.values.get('number_of_particles', '1000'))
+        print(f"number of particles: {number_of_particles}")
 
         radius = float(request.values.get('radius', '250'))
+        print(f"radius: {radius}")
 
         depth = float(request.values.get('depth', '0'))
+        print(f"depth: {depth}")
 
         northwest_lat = float(request.values.get('northwest_lat', defaults['northwest_lat']))
         northwest_lon = float(request.values.get('northwest_lon', defaults['northwest_lon']))
@@ -544,6 +566,7 @@ def create_app():
         output_path = context["output_path"]
         output_file_prefix = context["output_file_prefix"]
         model = context["model"]
+        print(f"Generating project: model {model}, {type(model)}")
 
         json_output_path = "{0}/timepoints.json".format(release_dir)
         geojson_output_path = "{0}/geo.json".format(release_dir)
@@ -568,15 +591,24 @@ def create_app():
 
         overwrite_json_file(status_output_path, "start processing")
 
-        model_template = 'leeway.py.mustache'
-        if context["object_type_key"] == "SEABED":
+        model_type = model.split("_")[-1].lower()
+        model_template = None
+
+        if model_type == "leeway":
+            model_template = 'leeway.py.mustache'
+
+        elif model_type == "openoil":
+            model_template = 'openoil.py.mustache'
+
+        elif context["object_type_key"] == "SEABED":
             model_template = 'oceandrift.py.mustache'
+
         if not os.path.isfile(nc_output_path):
             nc_output_pattern = '{0}/{1}*.nc'.format(output_path, output_file_prefix)
             fnames = glob.glob(nc_output_pattern)
             if len(fnames) == 0:
                 pyscript = '{0}/model.py'.format(release_dir)
-                encoding = 'utf-8';
+                encoding = 'utf-8'
                 pycode = None
                 with codecs.open(model_template, encoding=encoding) as myfile:
                     pycode = myfile.read()

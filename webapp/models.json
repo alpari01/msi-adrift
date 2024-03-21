@@ -52,7 +52,7 @@
       "southeast_lat": 50,
       "southeast_lon": -8
     },
-    "leeway_drifters": ["hello", "world"],
+    "leeway_drifters": ["GULLFAKS, EXXON", "ARABIAN MEDIUM, API", "ALGERIAN CONDENSATE, STATOIL"],
     "variables": {
       "latitude": "lat_u",
       "longitude": "lon_u",
