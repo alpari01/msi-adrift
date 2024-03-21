@@ -137,7 +137,7 @@
             let showFewer = document.createElement('option');
             showFewer.innerHTML = "fewer options...";
             showFewer.style["font-weight"] = "bold";
-            let options = info.leeway_drifters.map(e=>{
+            let options = info.drifters.map(e=>{
               let option = document.createElement('option');
               option.value = e.index;
               if(e.preferred){
@@ -147,7 +147,7 @@
               return option;
             });
             options.push(showFewer);
-            let preferred_options = info.leeway_drifters.filter(e=>e.preferred).map(e=>{
+            let preferred_options = info.drifters.filter(e=>e.preferred).map(e=>{
               let option = document.createElement('option');
               option.value = e.index;
               option.innerHTML = e.label.replace(/>/g,'');

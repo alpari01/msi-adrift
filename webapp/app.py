@@ -38,23 +38,22 @@ def _init():
         'Description': leeway_model.leewayprop[item]['Description']
     } for i, item in enumerate(leeway_model.leewayprop)]
 
-    print("====================DEBUG============")
-    for elem in leeway_model.leewayprop:
-        print(elem)
-
     # create objects for OpenOil model
     global OPENOIL_OBJECTS
-    openoil_model = OpenOil(loglevel=0)  # use 0 for full output, use 20 to get min output data, use 50 for no output
-    openoil_model.set_config('general:use_auto_landmask', False)
-    # OPENOIL_OBJECTS = [{
-    #     'OBJKEY': oo_model.openoilprop[item]['OBJKEY'],
-    #     'Description': oo_model.openoilprop[item]['Description']
-    # } for i, item in enumerate(oo_model.openoilprop)]
 
-    # print(oo_model.dir())
+    # use 0 for full output, use 20 to get min output data, use 50 for no output
+    openoil_model = OpenOil(loglevel=0, weathering_model='noaa')
+    # openoil_model.set_config('general:use_auto_landmask', False)
 
-    # print(LEEWAY_OBJECTS)
-    # print(OPENOIL_OBJECTS)
+    OPENOIL_OBJECTS = [{
+        'OBJKEY': objkey,
+        'Name': name
+    } for objkey, name in enumerate(openoil_model.oiltypes)]
+
+    openoil_model.set_config('processes:evaporation', True)
+    openoil_model.set_config('processes:emulsification', True)
+    openoil_model.set_config('drift:vertical_mixing', True)
+    openoil_model.set_config('vertical_mixing:timestep', 5)
 
 
 def create_app():
@@ -178,6 +177,16 @@ def create_app():
                    "label": "SEABED: Seabed Transport (no wind)"})
         return lo
 
+    def list_openoil_objects():
+        lo = [{"index": i + 1,
+               "key": o["OBJKEY"],
+               "name": o["Name"],
+               "label": "{0} {1}".format(o["OBJKEY"], o["Name"])}
+              for i, o in enumerate(OPENOIL_OBJECTS)]
+
+        return lo
+
+
     @app.route('/api/models')
     def models():
         items = []
@@ -262,33 +271,35 @@ def create_app():
     @app.route('/api/model/<model>/info')
     def info(model):
         (time_min, time_max, lat_min, lat_max, lon_min, lon_max, polygon) = _range(model)
-        leeway_drifters = ["hello-world", "PERSON-POWERED-VESSEL-1", "PERSON-POWERED-VESSEL-2",
+        leeway_drifters = ["123", "PERSON-POWERED-VESSEL-1", "PERSON-POWERED-VESSEL-2",
                            "PERSON-POWERED-VESSEL-3", "FISHING-VESSEL-1", "SAILBOAT-1", "SAILBOAT-2", "OIL-DRUM",
                            "CONTAINER-1", "SLDMB"]
 
-        if "leeway_drifters" in model:
-            # TODO: now working?
-            leeway_drifters = model["leeway_drifters"]
-
-        if "leeway" in model:
-            print("Using leeway model")
-            leeway_objects = list_leeway_objects()
-
-        if "openoil" in model:
-            print("Using openoil model")
-            pass
-
-        if "leeway" not in model and "openoil" not in model:
-            print("unknown type of model")
+        openoil_drifters = ["GULLFAKS, EXXON", "ARABIAN MEDIUM, API", "ALGERIAN CONDENSATE, STATOIL"]
 
         print("Called /api/model/<model>/info")
-        print(f"model: {model}")
+        print(f"model: {model}, type: {type(model)}")
+        model_type = model.split("_")[-1].lower()
 
-        print(f"leeway_objects: {leeway_objects}")
+        objects = []
 
-        for obj in leeway_objects:
-            if obj["index"] < 0 or obj["key"] in leeway_drifters:
-                obj["preferred"] = True
+        if model_type == 'leeway':
+            objects = list_leeway_objects()
+
+            for obj in objects:
+                if obj["index"] < 0 or obj["key"] in leeway_drifters:
+                    obj["preferred"] = True
+
+        elif model_type == 'openoil':
+            objects = list_openoil_objects()
+
+            for obj in objects:
+                if obj["key"] in openoil_drifters:
+                    obj["preferred"] = True
+
+        else:
+            print("unknown type of model")
+            return None
 
         return jsonify(time_min=time_min,
                        time_max=time_max,
@@ -297,7 +308,7 @@ def create_app():
                        lon_min=lon_min,
                        lon_max=lon_max,
                        polygon=polygon,
-                       leeway_drifters=leeway_objects)
+                       drifters=objects)
 
     def _indexOfLastNotGreater(l, val):
         l2 = [v for v in l if v <= val]
@@ -356,8 +367,10 @@ def create_app():
     @app.route('/api/model/<model>/projection', methods=["GET", "POST"])
     def projection(model):
         metadata = _models()
+
         if not model in metadata:
             abort(404)
+
         defaults = metadata[model]["defaults"]
 
         (time_min, time_max, lat_min, lat_max, lon_min, lon_max, polygon) = _range(model)
@@ -366,37 +379,66 @@ def create_app():
                       "lat_max": lat_max, "lon_min": lon_min, "lon_max": lon_max
                       }
         }
+
+        print("======================================DEBUG")
+        print("======================================DEBUG")
+        print("======================================DEBUG")
+        print("======================================DEBUG")
+        print("Called /api/model/<model>/projection")
+
         object_type = int(request.values.get('object_type', '1'))
+        print(f"object type: {object_type}")
+
         leeway_object = next(filter(lambda x: x["index"] == object_type, list_leeway_objects()), None)
+        print(f"leeway object: {leeway_object}")
+
         object_type_description = leeway_object["description"]
+        print(f"object type description: {object_type_description}")
+
         object_type_key = leeway_object["key"]
+        print(f"object type key: {object_type_key}")
+
         start_release_time = dateutil.parser.parse(request.values.get('start_time', time_min))
+
         project_name = request.values.get('project_name',
                                           '{0} {1}'.format(start_release_time.strftime("%Y-%m-%d %H:%M"),
                                                            object_type_key))
         end_release_time = dateutil.parser.parse(request.values.get('end_release_time', start_release_time.isoformat()))
         end_time = dateutil.parser.parse(request.values.get('end_time', time_max))
+
         latitude = float(request.values.get('latitude', defaults["latitude"]))
         longitude = float(request.values.get('longitude', defaults["longitude"]))
+
         number_of_particles = int(request.values.get('number_of_particles', '1000'))
+
         radius = float(request.values.get('radius', '250'))
+
         depth = float(request.values.get('depth', '0'))
+
         northwest_lat = float(request.values.get('northwest_lat', defaults['northwest_lat']))
         northwest_lon = float(request.values.get('northwest_lon', defaults['northwest_lon']))
         southeast_lat = float(request.values.get('southeast_lat', defaults['southeast_lat']))
         southeast_lon = float(request.values.get('southeast_lon', defaults['southeast_lon']))
+
         # Set the beginning date and time of the simulation. Format: year #### month ## day ## at HH:mm.
         beginning = start_release_time.strftime("year %Y month %m day %d at %H:%M.")
+
         # Set the duration of particle transport. Format: #### day(s) ## hour(s) ## minute(s)
         duration = end_time - end_release_time
+
         dhours, rem = divmod(duration.seconds, 3600)
         dminutes, dseconds = divmod(rem, 60)
         duration = "{0:0>4} day(s) {1:0>2} hour(s) {2:0>2} minute(s)".format(duration.days, dhours, dminutes)
+
         input_path = '/input/{0}'.format(model)
+
         model_date_path = '{0}/{1}'.format(model, datetime.datetime.today().strftime('%Y/%m'))
+
         output_path = '/output/{0}'.format(model_date_path)
+
         if not os.path.exists(output_path):
             os.makedirs(output_path)
+
         updates = {
             'latitude': latitude,
             'longitude': longitude,
@@ -417,6 +459,7 @@ def create_app():
             'object_type_description': object_type_description,
             'drifter': '{1}: {2}'.format(object_type, object_type_key, object_type_description.replace('>', ''))
         }
+
         context = {**defaults, **updates}
         for key in ["opendap_url"]:
             if key in metadata[model]:
@@ -424,7 +467,9 @@ def create_app():
 
         to_hash["context"] = context
         hash = hashlib.sha224(json.dumps(to_hash, sort_keys=True).encode('utf-8')).hexdigest()
+
         output_file_prefix = "{0}_{1}".format(model, hash)
+
         release_dir = "{0}/{1}".format(output_path, hash)
 
         if os.path.exists(release_dir):
@@ -450,6 +495,7 @@ def create_app():
         context['project_path'] = '/project/{0}/{1}/'.format(model_date_path, hash)
         context['created_time'] = "{0}Z".format(datetime.datetime.now().isoformat()[0:19])
         context['project_name'] = project_name
+
         if "nc_fetch_url" in metadata[model]:
             context["nc_input_file"] = "{0}/input.nc".format(release_dir)
             context["nc_fetch_url"] = _calculate_nc_fetch_url(
@@ -460,6 +506,7 @@ def create_app():
                 northwest_lon,
                 southeast_lat,
                 southeast_lon)
+
         if "wind_url" in metadata[model]:
             context["wind_url"] = metadata[model]["wind_url"]
 
