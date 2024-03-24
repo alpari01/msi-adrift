@@ -22,15 +22,16 @@ model = OpenOil(loglevel=20, weathering_model='noaa')
 
 model.set_config('general:use_auto_landmask', False)
 
-model.set_config('processes:dispersion', True)
-model.set_config('processes:evaporation',  True)
-model.set_config('processes:emulsification',  True)
+"""model.set_config('processes:dispersion', True)"""
+"""model.set_config('processes:evaporation',  True)"""
+"""model.set_config('processes:emulsification',  True)"""
 model.set_config('processes:biodegradation', True)
 model.set_config('biodegradation:method', 'half_time')
 
-model.set_config('drift:current_uncertainty', .1)
-model.set_config('drift:wind_uncertainty', 1)
+"""model.set_config('drift:current_uncertainty', .1)"""
+"""model.set_config('drift:wind_uncertainty', 1)"""
 model.set_config('drift:vertical_mixing',  True)
+"""model.set_config('vertical_mixing:timestep',  5)"""
 
 print('fetching {{opendap_url}}')
 phys = reader_ROMS_native.Reader('{{opendap_url}}')
@@ -51,15 +52,14 @@ model.seed_elements(lon=longitude,
                     time=datetime.now(),
                     biodegradation_half_time_slick=3,
                     biodegradation_half_time_droplet=1,
-                    oil_type="GENERIC MEDIUM CRUDE",
+                    oil_type=object_type,
                     m3_per_hour=.5,
                     diameter=1e-5
                 )
 
 print('starting model run')
-model.run(end_time=end_time,
-        time_step=timedelta(minutes=10),
-        time_step_output=timedelta(minutes=10),
+model.run(duration=timedelta(hours=12),
+        time_step=600,
         outfile=filename,
         export_variables=["trajectory",
                             "time",
@@ -69,11 +69,14 @@ model.run(end_time=end_time,
                             "lat",
                             "z",
                             "mass_oil",
-                            "density"
+                            "density",
+                            "mass_evaporated",
+                            "mass_dispersed",
+                            "mass_biodegraded"
                         ]
         )
 
 print('plotting results')
-model.o.plot_oil_budget(show_watercontent_and_viscosity=False, show_wind_and_current=False)
+model.plot_oil_budget(show_watercontent_and_viscosity=False, show_wind_and_current=False, filename="oil_budget")
 
 print('finished model run')

@@ -555,9 +555,10 @@ def create_app():
         context = None
         with open(context_file_path) as f:
             context = json.load(f)
+
         status_output_path = "{0}/status.json".format(context["release_dir"])
-        # CHANGED
         log_output_path = "{0}/log.txt".format(context["release_dir"])
+
         try:
             _generate_project(context, status_output_path, log_output_path)
         except:
