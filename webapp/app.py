@@ -96,6 +96,12 @@ def create_app():
     def show_project_file(project, file):
         return send_file("/output/{0}/{1}".format(project, file))
 
+    # @app.route('/project/<path:project>/plot_fast', methods=['GET'])
+    # def plot_fast():
+    #     print("Called /project/plot_fast")
+    #     return send_file("")
+
+
     @app.route('/project/new', methods=['GET', 'POST'])
     def show_new():
         context = None
@@ -380,10 +386,6 @@ def create_app():
                       }
         }
 
-        print("======================================DEBUG")
-        print("======================================DEBUG")
-        print("======================================DEBUG")
-        print("======================================DEBUG")
         print("Called /api/model/<model>/projection")
         print(f"using model: {model}")
 
@@ -554,6 +556,7 @@ def create_app():
         with open(context_file_path) as f:
             context = json.load(f)
         status_output_path = "{0}/status.json".format(context["release_dir"])
+        # CHANGED
         log_output_path = "{0}/log.txt".format(context["release_dir"])
         try:
             _generate_project(context, status_output_path, log_output_path)

@@ -21,10 +21,16 @@ R = {{radius}}
 model = OpenOil(loglevel=20, weathering_model='noaa')
 
 model.set_config('general:use_auto_landmask', False)
+
+model.set_config('processes:dispersion', True)
 model.set_config('processes:evaporation',  True)
 model.set_config('processes:emulsification',  True)
+model.set_config('processes:biodegradation', True)
+model.set_config('biodegradation:method', 'half_time')
+
+model.set_config('drift:current_uncertainty', .1)
+model.set_config('drift:wind_uncertainty', 1)
 model.set_config('drift:vertical_mixing',  True)
-model.set_config('vertical_mixing:timestep',  5)
 
 print('fetching {{opendap_url}}')
 phys = reader_ROMS_native.Reader('{{opendap_url}}')
@@ -33,17 +39,21 @@ wind = reader_netCDF_CF_generic.Reader('{{wind_url}}')
 
 model.add_reader([phys,wind])
 
-object_type = {{object_type}} # {{object_type_key}} {{object_type_description}}
+object_type = "{{object_type_key}}"
 
-# TODO: arome model required?
-
+print(f"Seeding model with: lon={longitude}, lat={latitude}, z=0, number={N}, radius={R}, oil_type={object_type}")
 model.seed_elements(lon=longitude,
-                lat=latitude,
-                number=N,
-                radius=R,
-                radius_type="uniform",
-                time=start_time,
-                oil_type="GULLFAKS, EXXON"
+                    lat=latitude,
+                    z=0,
+                    number=N,
+                    radius=R,
+                    radius_type="uniform",
+                    time=datetime.now(),
+                    biodegradation_half_time_slick=3,
+                    biodegradation_half_time_droplet=1,
+                    oil_type="GENERIC MEDIUM CRUDE",
+                    m3_per_hour=.5,
+                    diameter=1e-5
                 )
 
 print('starting model run')
@@ -56,7 +66,14 @@ model.run(end_time=end_time,
                             "status",
                             "age_seconds",
                             "lon",
-                            "lat"]
+                            "lat",
+                            "z",
+                            "mass_oil",
+                            "density"
+                        ]
         )
+
+print('plotting results')
+model.o.plot_oil_budget(show_watercontent_and_viscosity=False, show_wind_and_current=False)
 
 print('finished model run')
