@@ -3,10 +3,13 @@ from opendrift.readers import reader_netCDF_CF_generic
 from opendrift.readers import reader_ROMS_native
 from opendrift.models.openoil import OpenOil
 import dateutil.parser
+import os
 
 print('setting up openoil model...')
 
 filename = '{{nc_output_path}}'
+
+os.makedirs(f'{filename[:-10]}/plots')
 
 longitude = {{longitude}}
 latitude = {{latitude}}
@@ -72,11 +75,18 @@ model.run(duration=timedelta(hours=12),
                             "density",
                             "mass_evaporated",
                             "mass_dispersed",
-                            "mass_biodegraded"
+                            "mass_biodegraded",
+                            "viscosity",
+                            "water_fraction",
+                            "x_wind",
+                            "y_wind",
+                            "x_sea_water_velocity",
+                            "y_sea_water_velocity"
                         ]
         )
 
 print('plotting results')
-model.plot_oil_budget(show_watercontent_and_viscosity=False, show_wind_and_current=False, filename="oil_budget")
+print("saving result to " + f"{filename[:-10]}/plots/oil_budget")
+model.plot_oil_budget(filename=f"{filename[:-10]}/plots/oil_budget")
 
 print('finished model run')
