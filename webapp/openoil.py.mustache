@@ -3,10 +3,13 @@ from opendrift.readers import reader_netCDF_CF_generic
 from opendrift.readers import reader_ROMS_native
 from opendrift.models.openoil import OpenOil
 import dateutil.parser
+import os
 
 print('setting up openoil model...')
 
 filename = '{{nc_output_path}}'
+
+os.makedirs(f'{filename[:-10]}/plots')
 
 longitude = {{longitude}}
 latitude = {{latitude}}
@@ -21,10 +24,17 @@ R = {{radius}}
 model = OpenOil(loglevel=20, weathering_model='noaa')
 
 model.set_config('general:use_auto_landmask', False)
-model.set_config('processes:evaporation',  True)
-model.set_config('processes:emulsification',  True)
+
+"""model.set_config('processes:dispersion', True)"""
+"""model.set_config('processes:evaporation',  True)"""
+"""model.set_config('processes:emulsification',  True)"""
+model.set_config('processes:biodegradation', True)
+model.set_config('biodegradation:method', 'half_time')
+
+"""model.set_config('drift:current_uncertainty', .1)"""
+"""model.set_config('drift:wind_uncertainty', 1)"""
 model.set_config('drift:vertical_mixing',  True)
-model.set_config('vertical_mixing:timestep',  5)
+"""model.set_config('vertical_mixing:timestep',  5)"""
 
 print('fetching {{opendap_url}}')
 phys = reader_ROMS_native.Reader('{{opendap_url}}')
@@ -33,30 +43,50 @@ wind = reader_netCDF_CF_generic.Reader('{{wind_url}}')
 
 model.add_reader([phys,wind])
 
-object_type = {{object_type}} # {{object_type_key}} {{object_type_description}}
+object_type = "{{object_type_key}}"
 
-# TODO: arome model required?
-
+print(f"Seeding model with: lon={longitude}, lat={latitude}, z=0, number={N}, radius={R}, oil_type={object_type}")
 model.seed_elements(lon=longitude,
-                lat=latitude,
-                number=N,
-                radius=R,
-                radius_type="uniform",
-                time=start_time,
-                oil_type="GULLFAKS, EXXON"
+                    lat=latitude,
+                    z=0,
+                    number=N,
+                    radius=R,
+                    radius_type="uniform",
+                    time=datetime.now(),
+                    biodegradation_half_time_slick=3,
+                    biodegradation_half_time_droplet=1,
+                    oil_type=object_type,
+                    m3_per_hour=.5,
+                    diameter=1e-5
                 )
 
 print('starting model run')
-model.run(end_time=end_time,
-        time_step=timedelta(minutes=10),
-        time_step_output=timedelta(minutes=10),
+model.run(duration=timedelta(hours=12),
+        time_step=600,
         outfile=filename,
         export_variables=["trajectory",
                             "time",
                             "status",
                             "age_seconds",
                             "lon",
-                            "lat"]
+                            "lat",
+                            "z",
+                            "mass_oil",
+                            "density",
+                            "mass_evaporated",
+                            "mass_dispersed",
+                            "mass_biodegraded",
+                            "viscosity",
+                            "water_fraction",
+                            "x_wind",
+                            "y_wind",
+                            "x_sea_water_velocity",
+                            "y_sea_water_velocity"
+                        ]
         )
+
+print('plotting results')
+print("saving result to " + f"{filename[:-10]}/plots/oil_budget")
+model.plot_oil_budget(filename=f"{filename[:-10]}/plots/oil_budget")
 
 print('finished model run')
