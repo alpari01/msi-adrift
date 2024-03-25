@@ -24,4 +24,3 @@ USER uwsgi
 WORKDIR /webapp
 EXPOSE 5000
 CMD ["uwsgi", "--enable-threads", "--http", ":5000", "--wsgi-file", "wsgi.py"]
-

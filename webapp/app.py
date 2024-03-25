@@ -96,12 +96,6 @@ def create_app():
     def show_project_file(project, file):
         return send_file("/output/{0}/{1}".format(project, file))
 
-    # @app.route('/project/<path:project>/plot_fast', methods=['GET'])
-    # def plot_fast():
-    #     print("Called /project/plot_fast")
-    #     return send_file("")
-
-
     @app.route('/project/new', methods=['GET', 'POST'])
     def show_new():
         context = None
@@ -663,9 +657,9 @@ def create_app():
 
         overwrite_json_file(status_output_path, "writing projection.js")
         with open(js_output_path, 'w') as f:
-            f.write("projection=");
+            f.write("projection=")
             json.dump(points, f)
-            f.write(";\n");
+            f.write(";\n")
 
         overwrite_json_file(status_output_path, "Finished")
 
@@ -695,7 +689,7 @@ def create_app():
                     continue
                 lat = float(lats[j][i])
                 lon = float(lons[j][i])
-                points["points"].append([lat, lon]);
+                points["points"].append([lat, lon])
                 feature = {"type": "Feature", "geometry": {
                     "time": timestamp,
                     "type": "Point", "coordinates": [lat, lon]
