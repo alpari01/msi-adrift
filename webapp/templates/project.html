@@ -41,7 +41,25 @@
             $.fn.editable.defaults.mode = 'inline';
             let map = undefined;
             let controlLayer = undefined;
-            $(document).ready(function(){
+            $(document).ready(function() {
+              function createNewImageDivBlock(imageSrc) {
+                  let newDiv = $('<div>');
+                  let heading = $('<h3>').text('Graphs');
+                  let img = $('<img>');
+
+                  img.attr('src', window.location.href.replace(/\/project(?!.*\/project)/, imageSrc));
+
+                  newDiv.append(heading);
+                  newDiv.append(img);
+                  $('#sim-data-rows').append(newDiv);
+                }
+              $.ajax({
+                  url: "plots/oil_budget.png",
+                  type: 'HEAD',
+                  success: function () {
+                      createNewImageDivBlock("/plots/oil_budget.png");
+                  }
+              });
               $.ajax({url: "context.json", cache: false}).done(function(data){
                 document.title = data.project_name;
                 let keys = Object.keys(data);
@@ -85,38 +103,40 @@
         <h1><a href="/">ADRIFT</a></h1>
         <p class="lead"><a href="http://www.marine.ie/">Marine Institute</a> predicted sea surface tracking.</p>
         <h3 id="ctx_project_name"></h3>
-        <div class="row">
-        </div>
-        <div class="row">
-          <div id="play_map" class="map col-md-9"></div>
-          <div class='col-md-3'>
-           <h3>Project Details</h3>
-           <div class='table-responsive'>
-            <table class="table">
-              <tr><th class="text-right">Created</th><td id="ctx_created_time"></td></tr>
-              <tr><th class="text-right">Start</th><td id="ctx_start_time"></td></tr>
-              <tr><th class="text-right">End</th><td id="ctx_end_time"></td></tr>
-              <tr><th class="text-right">Location</th><td>{{latitude}}, {{longitude}}</td></tr>
-              <tr><th class="text-right">Radius</th><td id="ctx_radius"></td></tr>
-              <tr><th class="text-right">Particles</th><td id="ctx_number_of_particles"></td></tr>
-              <tr><th class="text-right">Model</th><td id="ctx_model"></td></tr>
-              <tr><th class="text-right">Drifter</th><td id="ctx_drifter"></td></tr>
-            </table>
-           </div>
-           <h3>Current Display</h3>
-           <div class='table-responsive'>
-            <table class="table">
-              <tr><th class="text-right">UTC Time</th><td id="utctime"></td></tr>
-              <tr><th class="text-right">Local Time</th><td id="localtime"></td></tr>
-            </table>
-           </div>
-           <h3>Downloads</h3>
-           <div class='table-responsive'>
-            <table id="downloads" class="table">
-             <tr><td><a href="output.nc">Generated NetCDF File</a></td></tr>
-            </table>
-           </div>
-          </div>
+        <div id="sim-data-rows">
+            <div class="row">
+            </div>
+            <div class="row">
+              <div id="play_map" class="map col-md-9"></div>
+              <div class='col-md-3'>
+               <h3>Project Details</h3>
+               <div class='table-responsive'>
+                <table class="table">
+                  <tr><th class="text-right">Created</th><td id="ctx_created_time"></td></tr>
+                  <tr><th class="text-right">Start</th><td id="ctx_start_time"></td></tr>
+                  <tr><th class="text-right">End</th><td id="ctx_end_time"></td></tr>
+                  <tr><th class="text-right">Location</th><td>{{latitude}}, {{longitude}}</td></tr>
+                  <tr><th class="text-right">Radius</th><td id="ctx_radius"></td></tr>
+                  <tr><th class="text-right">Particles</th><td id="ctx_number_of_particles"></td></tr>
+                  <tr><th class="text-right">Model</th><td id="ctx_model"></td></tr>
+                  <tr><th class="text-right">Drifter</th><td id="ctx_drifter"></td></tr>
+                </table>
+               </div>
+               <h3>Current Display</h3>
+               <div class='table-responsive'>
+                <table class="table">
+                  <tr><th class="text-right">UTC Time</th><td id="utctime"></td></tr>
+                  <tr><th class="text-right">Local Time</th><td id="localtime"></td></tr>
+                </table>
+               </div>
+               <h3>Downloads</h3>
+               <div class='table-responsive'>
+                <table id="downloads" class="table">
+                 <tr><td><a href="output.nc">Generated NetCDF File</a></td></tr>
+                </table>
+               </div>
+              </div>
+            </div>
         </div>
         <script>
             let current_draw = 0;

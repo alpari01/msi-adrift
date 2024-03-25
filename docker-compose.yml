@@ -2,5 +2,10 @@ version: "3"
 services:
   msi-adrift:
     build: .
+    volumes:
+      - output_volume:/output
     ports:
       - "5000:5000"
+
+volumes:
+  output_volume:
