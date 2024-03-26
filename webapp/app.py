@@ -132,6 +132,7 @@ def create_app():
         radius = 250
         duration = "12 hours"
         particles_amount = 1000
+        oil_amount = 10
 
         if context != None:
             latitude = context["latitude"]
@@ -160,6 +161,7 @@ def create_app():
                                duration=duration,
                                radius=radius,
                                particles_amount=particles_amount,
+                               oil_amount=oil_amount,
                                start_time=start_time,
                                longitude=longitude,
                                polygon=json.dumps([list(p) for p in polygon]))
@@ -426,6 +428,9 @@ def create_app():
         latitude = float(request.values.get('latitude', defaults["latitude"]))
         longitude = float(request.values.get('longitude', defaults["longitude"]))
 
+        oil_amount = int(request.values.get('oil_amount', '10'))
+        print(f"m3_per_hour: {oil_amount}")
+
         particles_amount = int(request.values.get('particles_amount', '1000'))
         print(f"number of particles: {particles_amount}")
 
@@ -467,6 +472,7 @@ def create_app():
             'input_path': input_path,
             'output_path': output_path,
             'particles_amount': particles_amount,
+            'oil_amount': oil_amount,
             'depth': depth,
             'radius': radius,
             'model': model,

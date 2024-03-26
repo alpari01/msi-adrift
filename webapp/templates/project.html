@@ -118,6 +118,7 @@
                   <tr><th class="text-right">Location</th><td>{{latitude}}, {{longitude}}</td></tr>
                   <tr><th class="text-right">Radius</th><td id="ctx_radius"></td></tr>
                   <tr><th class="text-right">Particles</th><td id="ctx_particles_amount"></td></tr>
+                  <tr><th class="text-right">Oil Amount</th><td id="ctx_oil_amount"></td></tr>
                   <tr><th class="text-right">Model</th><td id="ctx_model"></td></tr>
                   <tr><th class="text-right">Drifter</th><td id="ctx_drifter"></td></tr>
                 </table>
@@ -143,8 +144,8 @@
             let colour_layer = function(series){
               return {
                  draw_points: function(this_draw,series,i,info,canvasWidth,canvasData){
-                   if( i== series.length || this_draw != current_draw){
-                     if(this_draw == current_draw){
+                   if (i== series.length || this_draw != current_draw) {
+                     if (this_draw == current_draw) {
                        let ctx = info.canvas.getContext('2d');
                        ctx.putImageData(canvasData,0,0);
                      }
