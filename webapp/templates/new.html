@@ -177,8 +177,6 @@
 
         let list_object_types = function(){
           fetch_model_info.then(info => {
-            console.log("%o", info);
-
             let showMore = document.createElement('option');
             showMore.innerHTML = "more options...";
             showMore.style["font-weight"] = "bold";
@@ -324,10 +322,12 @@
                                 <label class="control-label">Amount <span id="particles_amount_label"></span> particles </label>
                                 <input class="form-control" id="particles_amount" name="particles_amount" data-slider-id='particles_amount' data-slider-tooltip="hide" type="text" data-slider-min="5" data-slider-max="1000" data-slider-step="5" data-slider-value="{{particles_amount}}"/>
                             </div>
+                            {% if model.endswith('_openoil') %}
                             <div class="form-group">
                                 <label class="control-label">Amount Oil <span id="oil_amount_label"></span> m³ </label>
                                 <input class="form-control" id="oil_amount" name="oil_amount" data-slider-id='oil_amount' data-slider-tooltip="hide" type="text" data-slider-min="5" data-slider-max="1000" data-slider-step="5" data-slider-value="{{oil_amount}}"/>
                             </div>
+                            {% endif %}
                             <div class="form-group">
                                 <label class="control-label">Start (UTC)</label>
                                 <span id="start_time_label"></span>
