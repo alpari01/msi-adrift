@@ -107,34 +107,36 @@
             <div class="row">
             </div>
             <div class="row">
-              <div id="play_map" class="map col-md-9"></div>
-              <div class='col-md-3'>
-               <h3>Project Details</h3>
-               <div class='table-responsive'>
-                <table class="table">
-                  <tr><th class="text-right">Created</th><td id="ctx_created_time"></td></tr>
-                  <tr><th class="text-right">Start</th><td id="ctx_start_time"></td></tr>
-                  <tr><th class="text-right">End</th><td id="ctx_end_time"></td></tr>
-                  <tr><th class="text-right">Location</th><td>{{latitude}}, {{longitude}}</td></tr>
-                  <tr><th class="text-right">Radius</th><td id="ctx_radius"></td></tr>
-                  <tr><th class="text-right">Particles</th><td id="ctx_particles_amount"></td></tr>
-                  <tr><th class="text-right">Oil Amount</th><td id="ctx_oil_amount"></td></tr>
-                  <tr><th class="text-right">Model</th><td id="ctx_model"></td></tr>
-                  <tr><th class="text-right">Drifter</th><td id="ctx_drifter"></td></tr>
-                </table>
-               </div>
-               <h3>Current Display</h3>
-               <div class='table-responsive'>
-                <table class="table">
-                  <tr><th class="text-right">UTC Time</th><td id="utctime"></td></tr>
-                  <tr><th class="text-right">Local Time</th><td id="localtime"></td></tr>
-                </table>
-               </div>
+                <div id="play_map" class="map col-md-9"></div>
+                <div class='col-md-3'>
+                    <h3>Project Details</h3>
+                    <div class='table-responsive'>
+                        <table class="table">
+                            <tr><th class="text-left" id="model_name">Model</th>leeway<td id="ctx_model"></td></tr>
+                            <tr><th class="text-left">Drifter</th><td id="ctx_drifter"></td></tr>
+                            <tr><th class="text-left">Location</th><td>{{latitude}}, {{longitude}}</td></tr>
+                            <tr><th class="text-left">Radius</th><td id="ctx_radius"></td></tr>
+                            <tr><th class="text-left">Particles</th><td id="ctx_particles_amount"></td></tr>
+                            {% if model.endswith('_openoil') %}
+                            <tr><th class="text-left">Oil Amount</th><td id="ctx_oil_amount"></td></tr>
+                            {% endif %}
+                            <tr><th class="text-left">Created</th><td id="ctx_created_time"></td></tr>
+                            <tr><th class="text-left">Start</th><td id="ctx_start_time"></td></tr>
+                            <tr><th class="text-left">End</th><td id="ctx_end_time"></td></tr>
+                        </table>
+                    </div>
+                    <h3>Current Display</h3>
+                <div class='table-responsive'>
+                    <table class="table">
+                        <tr><th class="text-left">UTC Time</th><td id="utctime"></td></tr>
+                        <tr><th class="text-left">Local Time</th><td id="localtime"></td></tr>
+                    </table>
+                </div>
                <h3>Downloads</h3>
                <div class='table-responsive'>
-                <table id="downloads" class="table">
-                 <tr><td><a href="output.nc">Generated NetCDF File</a></td></tr>
-                </table>
+                   <table id="downloads" class="table">
+                       <tr><td><a href="output.nc">Generated NetCDF File</a></td></tr>
+                   </table>
                </div>
               </div>
             </div>

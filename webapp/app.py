@@ -74,7 +74,8 @@ def create_app():
     def show_output(project):
         with open("/output/{0}/context.json".format(project)) as f:
             context = json.load(f)
-            return render_template('project.html', latitude=context["latitude"], longitude=context["longitude"])
+            return render_template('project.html', latitude=context["latitude"],
+                                   longitude=context["longitude"], model=context["model"])
 
     @app.route('/project/<path:project>/update', methods=['POST'])
     def update_context(project):
