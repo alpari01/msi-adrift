@@ -131,6 +131,7 @@ def create_app():
         start_time = time_min
         radius = 250
         duration = "12 hours"
+        particles_amount = 1000
 
         if context != None:
             latitude = context["latitude"]
@@ -158,6 +159,7 @@ def create_app():
                                date_max=time_max,
                                duration=duration,
                                radius=radius,
+                               particles_amount=particles_amount,
                                start_time=start_time,
                                longitude=longitude,
                                polygon=json.dumps([list(p) for p in polygon]))
@@ -424,8 +426,8 @@ def create_app():
         latitude = float(request.values.get('latitude', defaults["latitude"]))
         longitude = float(request.values.get('longitude', defaults["longitude"]))
 
-        number_of_particles = int(request.values.get('number_of_particles', '1000'))
-        print(f"number of particles: {number_of_particles}")
+        particles_amount = int(request.values.get('particles_amount', '1000'))
+        print(f"number of particles: {particles_amount}")
 
         radius = float(request.values.get('radius', '250'))
         print(f"radius: {radius}")
@@ -464,7 +466,7 @@ def create_app():
             'duration': duration,
             'input_path': input_path,
             'output_path': output_path,
-            'number_of_particles': number_of_particles,
+            'particles_amount': particles_amount,
             'depth': depth,
             'radius': radius,
             'model': model,
