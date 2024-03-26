@@ -11,33 +11,29 @@ filename = '{{nc_output_path}}'
 """ Set seeding conditions """
 longitude = {{longitude}}
 latitude = {{latitude}}
-    
-# Set number of floats 
-N = {{number_of_particles}}
 
-# Date
+N = {{particles_amount}}
+
 start_time = datetime({{start_time_datetime}})
 end_time = datetime({{end_time_datetime}})
-    
-# Radius for uniform dispersion around source [meters]
+
 R = {{radius}}
-
-
     
 """ Model initialization """
 model = Leeway(loglevel=0)
 model.set_config('general:use_auto_landmask', False)
 """ Add readers """
-# Ocean data
+
 print('fetching {{opendap_url}}')
 phys = reader_ROMS_native.Reader('{{opendap_url}}')
 print('fetching {{wind_url}}')
 wind = reader_netCDF_CF_generic.Reader('{{wind_url}}')
 
-# Adding readers
 model.add_reader([phys,wind])
 
 object_type = {{object_type}} # {{object_type_key}} {{object_type_description}}
+
+print(f"Seeding model with: lon={longitude}, lat={latitude}, z=0, number={N}, radius={R}, object_type={object_type}")
 
 """ Seed elements """
 model.seed_elements(lon=longitude,

@@ -28,6 +28,54 @@
         .slider-selection {
             background: #BABABA;
         }
+
+        @media screen and (min-width: 240px) {
+            #radius {
+                width: 540px;
+            }
+        }
+        @media screen and (min-width: 992px) {
+            #radius {
+                width: 440px;
+            }
+        }
+        @media screen and (min-width: 1200px) {
+            #radius {
+                width: 540px;
+            }
+        }
+
+        @media screen and (min-width: 240px) {
+            #particles_amount {
+                width: 540px;
+            }
+        }
+        @media screen and (min-width: 992px) {
+            #particles_amount {
+                width: 440px;
+            }
+        }
+        @media screen and (min-width: 1200px) {
+            #particles_amount {
+                width: 540px;
+            }
+        }
+
+        @media screen and (min-width: 240px) {
+            #oil_amount {
+                width: 520px;
+            }
+        }
+        @media screen and (min-width: 992px) {
+            #oil_amount {
+                width: 440px;
+            }
+        }
+        @media screen and (min-width: 1200px) {
+            #oil_amount {
+                width: 540px;
+            }
+        }
         </style>
         <script>
         var min_date = new Date().setISO8601("{{date_min}}");
@@ -129,8 +177,6 @@
 
         let list_object_types = function(){
           fetch_model_info.then(info => {
-            console.log("%o", info);
-
             let showMore = document.createElement('option');
             showMore.innerHTML = "more options...";
             showMore.style["font-weight"] = "bold";
@@ -174,21 +220,32 @@
             setOptions(preferred_options);
           });
         }
-        $(document).ready(function(){
-          $("#start_time_picker").val(moment('{{start_time}}').format(picker_date_format));
-           $("#radius").slider({
-            formatter: function(value) {
-                  $("#radius_label").text(value);
-                }
-             });
-            $("input:text").focus(function() { $(this).select(); } );
+        $(document).ready(function() {
+            $("#start_time_picker").val(moment('{{start_time}}').format(picker_date_format));
 
-           $("#start_time_picker").on("change",update_dates);
-           $("#duration").on("change",update_dates);
-           $("#switchcalendar").on("click",function(){
-            $("#datetimepicker0").addClass('hidden');
-            $("#datetimepicker1").removeClass('hidden');
-               $('#datetimepicker2').datetimepicker({
+            $("#radius").slider({formatter: function(value) {
+                $("#radius_label").text(value);
+                }});
+
+            $("#particles_amount").slider({formatter: function(value) {
+                $("#particles_amount_label").text(value);
+                }});
+
+            $("#oil_amount").slider({formatter: function(value) {
+                $("#oil_amount_label").text(value);
+                }});
+
+            $("input:text").focus(function() {
+                $(this).select();
+                });
+
+            $("#start_time_picker").on("change", update_dates);
+            $("#duration").on("change", update_dates);
+
+            $("#switchcalendar").on("click",function() {
+                $("#datetimepicker0").addClass('hidden');
+                $("#datetimepicker1").removeClass('hidden');
+                $('#datetimepicker2').datetimepicker({
                         format: "YYYY-MM-DD HH:mm",
                         inline: true,
                         sideBySide: true,
@@ -197,22 +254,23 @@
                         maxDate: max_date
                     });
 
-               $('#datetimepicker2').on('dp.change',function(e){
+                $('#datetimepicker2').on('dp.change',function(e){
                 $("#start_time_picker").val(e.date.format(picker_date_format));
                 _update_dates(e.date.toDate());
+                    });
 
-               });
-
-           });
-           $("#cancelcalendar").on("click",function(){
+                });
+            $("#cancelcalendar").on("click",function() {
                 $("#datetimepicker1").addClass('hidden');
-              $("#datetimepicker0").removeClass('hidden');
-           });
-           update_dates();
-           create_map();
-           list_object_types();
-           $("#project_name").focus();
-        });
+                $("#datetimepicker0").removeClass('hidden');
+                });
+
+            update_dates();
+            create_map();
+            list_object_types();
+
+            $("#project_name").focus();
+            });
         </script>
     </head>
     <body>
@@ -228,16 +286,10 @@
                             <div class="col-md-6">
                              <div class="form-group">
                                <label class="control-label">Latitude</label>
-                               <!--
-                               <input class="form-control" required type="number" size="20" min="{{latitude_min}}" max="{{latitude_max}}" step="any" id="latitude" name="latitude" value="{{latitude}}" >
-                               -->
                                <input class="form-control" required type="number" size="20" step="any" id="latitude" name="latitude" value="{{latitude}}" >
                              </div>
                              <div class="form-group">
                                <label class="control-label">Longitude</label>
-                               <!--
-                               <input class="form-control" required type="number" size="20" min="{{longitude_min}}" max="{{longitude_max}}" step="any" id="longitude" name="longitude" value="{{longitude}}" >
-                               -->
                                <input class="form-control" required type="number" size="20" step="any" id="longitude" name="longitude" value="{{longitude}}" >
                              </div>
                             <div class="form-group">
@@ -251,39 +303,49 @@
                             <div class='input-group date hidden' id='datetimepicker1'>
                                 <div class='date' id='datetimepicker2'>
                                 </div>
-                                  <span class="input-group-addon">
+                                <span class="input-group-addon">
                                     <span class="glyphicon glyphicon-pencil" id="cancelcalendar"></span>
-                                  </span>
+                                </span>
                             </div>
                             <input type="hidden" id="start_time" name="start_time" value="{{start_time}}">
                             </div>
                             <div class="form-group">
-                            <label class="control-label">Duration</label>
-                             <input class="form-control" required id="duration" value="{{duration}}" name="duration" size="20" type="text" >
-                            <input type="hidden" id="end_time" name="end_time" value="{{date_max}}">
-                            </div>
-                             <div class="form-group">
-                               <label class="control-label">Radius <span id="radius_label"></span> metres </label>
-                               <input class="form-control" id="radius" name="radius" data-slider-id='radius' data-slider-tooltip="hide" type="text" data-slider-min="5" data-slider-max="1000" data-slider-step="5" data-slider-value="{{radius}}"/>
-                             </div>
-                            <div class="form-group">
-                            <label class="control-label">Start (UTC)</label>
-                             <span id="start_time_label"></span>
-                            <br>
-                            <label class="control-label">End (UTC)</label>
-                             <span id="end_time_label"></span>
+                                <label class="control-label">Duration</label>
+                                <input class="form-control" required id="duration" value="{{duration}}" name="duration" size="20" type="text" >
+                                <input type="hidden" id="end_time" name="end_time" value="{{date_max}}">
                             </div>
                             <div class="form-group">
-                            <label class="control-label">Drifter</label>
-                            <select  class="form-control" id="object_type" name="object_type"></select>
+                                <label class="control-label">Radius <span id="radius_label"></span> metres </label>
+                                <input class="form-control" id="radius" name="radius" data-slider-id='radius' data-slider-tooltip="hide" type="text" data-slider-min="5" data-slider-max="1000" data-slider-step="5" data-slider-value="{{radius}}"/>
                             </div>
-                             <div class="form-group">
-                              <button  type="submit" class="btn btn-default">Submit</button>
-                              <a href="/" class="btn btn-default">Cancel</a>
-                             </div>
+                            <div class="form-group">
+                                <label class="control-label">Amount <span id="particles_amount_label"></span> particles </label>
+                                <input class="form-control" id="particles_amount" name="particles_amount" data-slider-id='particles_amount' data-slider-tooltip="hide" type="text" data-slider-min="5" data-slider-max="1000" data-slider-step="5" data-slider-value="{{particles_amount}}"/>
+                            </div>
+                            {% if model.endswith('_openoil') %}
+                            <div class="form-group">
+                                <label class="control-label">Amount Oil <span id="oil_amount_label"></span> m³ </label>
+                                <input class="form-control" id="oil_amount" name="oil_amount" data-slider-id='oil_amount' data-slider-tooltip="hide" type="text" data-slider-min="5" data-slider-max="1000" data-slider-step="5" data-slider-value="{{oil_amount}}"/>
+                            </div>
+                            {% endif %}
+                            <div class="form-group">
+                                <label class="control-label">Start (UTC)</label>
+                                <span id="start_time_label"></span>
+                                <br>
+                                <label class="control-label">End (UTC)</label>
+                                <span id="end_time_label"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Drifter</label>
+                                <select  class="form-control" id="object_type" name="object_type"></select>
+                            </div>
+                                <div class="form-group">
+                                    <button  type="submit" class="btn btn-default">Submit</button>
+                                    <a href="/" class="btn btn-default">Cancel</a>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                             <div id="map"></div>
+                                <div id="map"></div>
                             </div>
                         </div>
                       {% if shrink_domain %}
