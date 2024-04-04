@@ -164,7 +164,7 @@ def create_app():
                                radius=radius,
                                particles_amount=particles_amount,
                                oil_amount=oil_amount,
-                               is_free_particles=123456,
+                               is_free_particles=is_free_particles,
                                start_time=start_time,
                                longitude=longitude,
                                polygon=json.dumps([list(p) for p in polygon]))
@@ -438,7 +438,6 @@ def create_app():
         print(f"number of particles: {particles_amount}")
 
         is_free_particles = request.values.get('is_free_particles', 'False')
-        print(f"is_free_particles requested: {is_free_particles}")
         is_free_particles = True if is_free_particles == "True" else False
         print(f"is_free_particles: {is_free_particles}")
 
