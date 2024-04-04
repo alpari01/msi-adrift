@@ -38,6 +38,16 @@
         }
         </style>
         <script>
+            function showHorizontal() {
+                document.getElementById("play_map").style.display = "block";
+                document.getElementById("play_vertical").style.display = "none";
+            }
+
+            function showVertical() {
+                document.getElementById("play_map").style.display = "none";
+                document.getElementById("play_vertical").style.display = "block";
+            }
+
             $.fn.editable.defaults.mode = 'inline';
             let map = undefined;
             let controlLayer = undefined;
@@ -54,10 +64,21 @@
                   $('#sim-data-rows').append(newDiv);
                 }
               $.ajax({
-                  url: "plots/oil_budget.png",
+                  url: window.location.href.replace(/\/project(?!.*\/project)/, "/plots/oil_budget.png"),
                   type: 'HEAD',
                   success: function () {
                       createNewImageDivBlock("/plots/oil_budget.png");
+                  }
+              });
+              $.ajax({
+                  url: window.location.href.replace(/\/project(?!.*\/project)/, "/plots/vertical_movement.gif"),
+                  type: 'HEAD',
+                  success: function () {
+                      let imgSrc = window.location.href.replace(/\/project(?!.*\/project)/, "/plots/vertical_movement.gif");
+                      $('#play_vertical').html('<img src="' + imgSrc + '" style="width: 100%; height: 80%;">');
+                  },
+                  error: function () {
+                      $('#play_vertical').html('<p>Error: Failed to load the GIF. Did you tick "Free Particles" checkbox?</p>');
                   }
               });
               $.ajax({url: "context.json", cache: false}).done(function(data){
@@ -108,7 +129,11 @@
             </div>
             <div class="row">
                 <div id="play_map" class="map col-md-9"></div>
+                <div id="play_vertical" class="map col-md-9" style="display: none;"></div>
                 <div class='col-md-3'>
+                    <h3>Toggle View</h3>
+                    <button onclick="showHorizontal()">Horizontal</button>
+                    <button onclick="showVertical()">Vertical</button>
                     <h3>Project Details</h3>
                     <div class='table-responsive'>
                         <table class="table">
@@ -118,6 +143,7 @@
                             <tr><th class="text-left">Radius</th><td id="ctx_radius"></td></tr>
                             <tr><th class="text-left">Particles</th><td id="ctx_particles_amount"></td></tr>
                             {% if model.endswith('_openoil') %}
+                            <tr><th class="text-left">Free Particles</th><td id="ctx_is_free_particles"></td></tr>
                             <tr><th class="text-left">Oil Amount</th><td id="ctx_oil_amount"></td></tr>
                             {% endif %}
                             <tr><th class="text-left">Created</th><td id="ctx_created_time"></td></tr>
