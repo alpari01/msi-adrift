@@ -22,6 +22,10 @@ start_time = datetime({{start_time_datetime}})
 end_time = datetime({{end_time_datetime}})
 R = {{radius}}
 depth = 0
+duration = "{{duration}}"
+duration_days = int(duration.split(" ")[0])
+duration_hours = int(duration.split(" ")[2])
+duration_minutes = int(duration.split(" ")[4])
 
 model = OpenOil(loglevel=20, weathering_model='noaa')
 
@@ -68,7 +72,7 @@ model.seed_elements(lon=longitude,
                 )
 
 print('starting model run')
-model.run(duration=timedelta(hours=12),
+model.run(duration=timedelta(hours=duration_hours),
         time_step=600,
         outfile=filename,
         export_variables=["trajectory",
