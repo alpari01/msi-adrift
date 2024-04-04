@@ -161,8 +161,8 @@
              $("#start_time").val(format_date(startdate));
            }
            try{
-               var duration = juration.parse($("#duration").val());
-               var enddate = new Date(startdate.getTime()+(duration*1000));
+               let duration = juration.parse($("#duration").val());
+               let enddate = new Date(startdate.getTime()+(duration*1000));
                if(enddate.getTime()>max_date.getTime()){
                  enddate = new Date(max_date.getTime());
                  duration = (enddate.getTime()-startdate.getTime())/1000;
