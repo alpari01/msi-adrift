@@ -39,13 +39,32 @@
         </style>
         <script>
             function showHorizontal() {
-                document.getElementById("play_map").style.display = "block";
-                document.getElementById("play_vertical").style.display = "none";
+                $('#play_map').show();
+                $('#play_vertical').hide();
+                $('#play_vertical img').removeAttr('src'); // Remove the src attribute to pause the GIF
             }
 
             function showVertical() {
-                document.getElementById("play_map").style.display = "none";
-                document.getElementById("play_vertical").style.display = "block";
+                $('#play_map').hide();
+                $('#play_vertical').show();
+                // Load the vertical GIF if it hasn't been loaded already
+                if ($('#play_vertical img').attr('src') === undefined) {
+                    loadVerticalGif();
+                }
+            }
+
+            function loadVerticalGif() {
+                $.ajax({
+                    url: window.location.href.replace(/\/project(?!.*\/project)/, "/plots/vertical_movement.gif"),
+                    type: 'HEAD',
+                    success: function () {
+                        let imgSrc = window.location.href.replace(/\/project(?!.*\/project)/, "/plots/vertical_movement.gif");
+                        $('#play_vertical').html('<img src="' + imgSrc + '" style="width: 100%; height: 80%;">');
+                    },
+                    error: function () {
+                        $('#play_vertical').html('<p>Error: Failed to load the GIF. Did you tick "Free Particles" checkbox?</p>');
+                    }
+                });
             }
 
             $.fn.editable.defaults.mode = 'inline';
@@ -68,17 +87,6 @@
                   type: 'HEAD',
                   success: function () {
                       createNewImageDivBlock("/plots/oil_budget.png");
-                  }
-              });
-              $.ajax({
-                  url: window.location.href.replace(/\/project(?!.*\/project)/, "/plots/vertical_movement.gif"),
-                  type: 'HEAD',
-                  success: function () {
-                      let imgSrc = window.location.href.replace(/\/project(?!.*\/project)/, "/plots/vertical_movement.gif");
-                      $('#play_vertical').html('<img src="' + imgSrc + '" style="width: 100%; height: 80%;">');
-                  },
-                  error: function () {
-                      $('#play_vertical').html('<p>Error: Failed to load the GIF. Did you tick "Free Particles" checkbox?</p>');
                   }
               });
               $.ajax({url: "context.json", cache: false}).done(function(data){
@@ -131,9 +139,11 @@
                 <div id="play_map" class="map col-md-9"></div>
                 <div id="play_vertical" class="map col-md-9" style="display: none;"></div>
                 <div class='col-md-3'>
+                    {% if model.endswith('_openoil') %}
                     <h3>Toggle View</h3>
                     <button onclick="showHorizontal()">Horizontal</button>
                     <button onclick="showVertical()">Vertical</button>
+                    {% endif %}
                     <h3>Project Details</h3>
                     <div class='table-responsive'>
                         <table class="table">
