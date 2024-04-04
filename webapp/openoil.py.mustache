@@ -4,23 +4,24 @@ from opendrift.readers import reader_ROMS_native
 from opendrift.models.openoil import OpenOil
 import dateutil.parser
 import os
+import numpy as np
 
 print('setting up openoil model...')
 
 filename = '{{nc_output_path}}'
 
+"""Make this dir to save all simulation plots/graphs to"""
 os.makedirs(f'{filename[:-10]}/plots')
 
 longitude = {{longitude}}
 latitude = {{latitude}}
-
 N = {{particles_amount}}
 oil_amount = {{oil_amount}}
-
+is_free_particles = {{is_free_particles}}
 start_time = datetime({{start_time_datetime}})
 end_time = datetime({{end_time_datetime}})
-
 R = {{radius}}
+depth = 0
 
 model = OpenOil(loglevel=20, weathering_model='noaa')
 
@@ -37,6 +38,10 @@ model.set_config('biodegradation:method', 'half_time')
 model.set_config('drift:vertical_mixing',  True)
 """model.set_config('vertical_mixing:timestep',  5)"""
 
+if is_free_particles == True:
+    depth = 'seafloor'
+    model.disable_vertical_motion()
+
 print('fetching {{opendap_url}}')
 phys = reader_ROMS_native.Reader('{{opendap_url}}')
 print('fetching {{wind_url}}')
@@ -46,10 +51,11 @@ model.add_reader([phys,wind])
 
 object_type = "{{object_type_key}}"
 
-print(f"Seeding model with: lon={longitude}, lat={latitude}, z=0, number={N}, radius={R}, oil_type={object_type}, m3_per_hour={oil_amount}")
+print(f"Seeding model with: lon={longitude}, lat={latitude}, z={depth}, number={N}, radius={R}, oil_type={object_type}, m3_per_hour={oil_amount}, is_free_particles={is_free_particles}")
+
 model.seed_elements(lon=longitude,
                     lat=latitude,
-                    z=0,
+                    z=depth,
                     number=N,
                     radius=R,
                     radius_type="uniform",
@@ -87,7 +93,12 @@ model.run(duration=timedelta(hours=12),
         )
 
 print('plotting results')
-print("saving result to " + f"{filename[:-10]}/plots/oil_budget")
+
 model.plot_oil_budget(filename=f"{filename[:-10]}/plots/oil_budget")
+print("oil budget saved")
+
+if depth == 'seafloor':
+    model.animation_profile(filename=f"{filename[:-10]}/plots/vertical_movement.gif")
+    print("animation saved")
 
 print('finished model run')

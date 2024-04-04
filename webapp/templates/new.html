@@ -78,22 +78,27 @@
         }
         </style>
         <script>
-        var min_date = new Date().setISO8601("{{date_min}}");
-        var max_date = new Date().setISO8601("{{date_max}}");
-        var date_range_millis = max_date.getTime() - min_date.getTime();
-        var marker = undefined;
-        var update_marker_location = function(){
-            var newLatLng = new L.LatLng(parseFloat($("#latitude").val()),parseFloat($("#longitude").val()));
+        let min_date = new Date().setISO8601("{{date_min}}");
+        let max_date = new Date().setISO8601("{{date_max}}");
+        let date_range_millis = max_date.getTime() - min_date.getTime();
+        let marker = undefined;
+        let update_marker_location = function(){
+            let newLatLng = new L.LatLng(parseFloat($("#latitude").val()),parseFloat($("#longitude").val()));
             marker.setLatLng(newLatLng);
         }
 
-        var create_map = function(){
+        function updateFreeParticles(checkbox) {
+            let is_free_particles_value = checkbox.checked ? "True" : "False";
+            $("#is_free_particles").val(is_free_particles_value);
+        }
+
+        let create_map = function(){
             map = L.map('map', {
             zoom: 12,
             fullscreenControl: true,
             center: [{{latitude}}, {{longitude}}]
             });
-            var tiles = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+            let tiles = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
               attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
             }).addTo(map);
           L.control.coordinates({
@@ -110,7 +115,7 @@
               $("#longitude").val(e.latlng.lng);
            });
           // show the bounds of the model
-           var model_polygon = L.polygon({{polygon}}, {fill: false, color:"#ff7800", weight: 1}).addTo(map);
+           let model_polygon = L.polygon({{polygon}}, {fill: false, color:"#ff7800", weight: 1}).addTo(map);
            map.fitBounds(model_polygon.getBounds());
 
           $("#latitude").change(update_marker_location);
@@ -326,6 +331,10 @@
                             <div class="form-group">
                                 <label class="control-label">Amount Oil <span id="oil_amount_label"></span> m³ </label>
                                 <input class="form-control" id="oil_amount" name="oil_amount" data-slider-id='oil_amount' data-slider-tooltip="hide" type="text" data-slider-min="5" data-slider-max="1000" data-slider-step="5" data-slider-value="{{oil_amount}}"/>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Free Particles From Seabed</label>
+                                <input class="form-control" id="is_free_particles" name="is_free_particles" type="checkbox" style="height: 18px" onchange="updateFreeParticles(this)" value="{{is_free_particles}}"/>
                             </div>
                             {% endif %}
                             <div class="form-group">
