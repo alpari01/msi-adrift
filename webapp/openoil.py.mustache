@@ -103,6 +103,10 @@ print("oil budget saved")
 
 if depth == 'seafloor':
     model.animation_profile(filename=f"{filename[:-10]}/plots/vertical_movement.gif")
-    print("animation saved")
+    print("vertical movement animation saved")
+
+"""model.animation(fast=True, background=['x_sea_water_velocity', 'y_sea_water_velocity'], filename=f"{filename[:-10]}/plots/coastline.gif")"""
+model.animation(fast=True, filename=f"{filename[:-10]}/plots/coastline.gif")
+print("coastline animation saved")
 
 print('finished model run')
