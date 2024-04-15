@@ -232,10 +232,6 @@
                 $("#radius_label").text(value);
                 }});
 
-            $("#particles_amount").slider({formatter: function(value) {
-                $("#particles_amount_label").text(value);
-                }});
-
             $("#oil_amount").slider({formatter: function(value) {
                 $("#oil_amount_label").text(value);
                 }});
@@ -324,9 +320,9 @@
                                 <input class="form-control" id="radius" name="radius" data-slider-id='radius' data-slider-tooltip="hide" type="text" data-slider-min="5" data-slider-max="1000" data-slider-step="5" data-slider-value="{{radius}}"/>
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Amount <span id="particles_amount_label"></span> particles </label>
-                                <input class="form-control" id="particles_amount" name="particles_amount" data-slider-id='particles_amount' data-slider-tooltip="hide" type="text" data-slider-min="5" data-slider-max="1000" data-slider-step="5" data-slider-value="{{particles_amount}}"/>
-                            </div>
+                               <label class="control-label">Particles Amount</label>
+                               <input class="form-control" required type="number" size="20" step="any" id="particles_amount" name="particles_amount" value="{{particles_amount}}" >
+                             </div>
                             {% if model.endswith('_openoil') %}
                             <div class="form-group">
                                 <label class="control-label">Amount Oil <span id="oil_amount_label"></span> m³ </label>
