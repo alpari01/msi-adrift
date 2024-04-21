@@ -103,9 +103,6 @@ def create_app():
 
         model = request.values.get('model', 'undefined')
 
-        print("Called /project/new")
-        print(f"Model: {model}, type: {type(model)}")
-
         if model == 'undefined':
             copy = request.values.get('copy', 'undefined')
 
@@ -118,13 +115,10 @@ def create_app():
                 model = context["model"]
 
         metadata = _models()
-        print(f"Metadata: {json.dumps(metadata)}")
         if not model in metadata:
             return redirect("/")
 
         info = metadata[model]
-
-        print(f"Info: {json.dumps(info)}")
 
         (time_min, time_max, lat_min, lat_max, lon_min, lon_max, polygon) = _range(model)
         latitude = info["defaults"]["latitude"]
@@ -284,8 +278,6 @@ def create_app():
 
         openoil_drifters = ["GULLFAKS, EXXON", "ARABIAN MEDIUM, API", "ALGERIAN CONDENSATE, STATOIL"]
 
-        print("Called /api/model/<model>/info")
-        print(f"model: {model}, type: {type(model)}")
         model_type = model.split("_")[-1].lower()
 
         objects = []
@@ -386,9 +378,6 @@ def create_app():
                       "lat_max": lat_max, "lon_min": lon_min, "lon_max": lon_max
                       }
         }
-
-        print("Called /api/model/<model>/projection")
-        print(f"using model: {model}")
 
         model_type = model.split("_")[-1].lower()
 
@@ -587,6 +576,7 @@ def create_app():
         times_output_path = "{0}/times.json".format(release_dir)
         js_output_path = "{0}/projection.js".format(release_dir)
         nc_output_path = "{0}/output.nc".format(release_dir)
+
         context["nc_output_path"] = nc_output_path;
 
         point_output_path = "{0}/point_{1}.json".format(release_dir, "{0}")
@@ -680,6 +670,7 @@ def create_app():
         overwrite_json_file(status_output_path, "Finished")
 
     def extract_points(url):
+        print(f"Extracting points from {url}")
         nc = netCDF4.Dataset(url)
 
         t = nc.variables['time'][:]

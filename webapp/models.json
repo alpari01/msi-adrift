@@ -58,5 +58,25 @@
       "longitude": "lon_u",
       "time": "ocean_time"
     }
+  },
+  "MSI_leeway": {
+    "id": "MSI_leeway",
+    "name": "MSI Leeway",
+    "opendap_url": "./mat_test_nemo31.nc",
+    "wind_url": "./mat_test_nemo31.nc",
+    "defaults": {
+      "latitude": 59.5318,
+      "longitude": 24.6712,
+      "northwest_lat": 60.725,
+      "northwest_lon": 21.55,
+      "southeast_lat": 56.94166666667,
+      "southeast_lon": 30.35
+    },
+    "leeway_drifters": ["PIW-1", "PIW-6", "LIFE-RAFT-DB-10", "PERSON-POWERED-VESSEL-1", "PERSON-POWERED-VESSEL-2", "PERSON-POWERED-VESSEL-3", "FISHING-VESSEL-1", "SAILBOAT-1", "SAILBOAT-2", "OIL-DRUM", "CONTAINER-1", "SLDMB"],
+    "variables": {
+      "latitude": "lat",
+      "longitude": "lon",
+      "time": "time"
+    }
   }
 }
