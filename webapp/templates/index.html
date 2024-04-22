@@ -14,11 +14,11 @@
         var refresh_status = function(project_path,elid){
            $.ajax(project_path+"status.json").success(function(status){
               if(status == "Finished"){
-                $("#"+elid).text(status);
-              }else if(status.startsWith("Project failed")){
+                $("#"+elid).text("Lõpetatud");
+              }else if(status.startsWith("Nurjunud")){
                 $("#"+elid).text("Failed");
               }else{
-                $("#"+elid).text("Processing");
+                $("#"+elid).text("Töötlemisel");
                 setTimeout(refresh_status.bind(null,project_path,elid),5000);
               }
            });
@@ -26,22 +26,22 @@
         $(document).ready(function(){
           $.ajax({url: "/api/projects", cache: false}).success(function(projects){
               if(projects.length == 0){
-                $("#projects").html("<p class='lead'>No projects.</p>");
+                $("#projects").html("<p class='lead'>Projekte pole</p>");
                 return;
               }
-              var $table = $("<table class='table'><th>Project</th><th>Created</th><th>Status</th><th>Model</th><th>Start Location</th><th>Start Time</th><th>Actions</th></table>");
-              for(var i=0;i<projects.length;i++){
-                 var project = projects[i];
-                 var $row = $("<tr></tr>");
-                 var $a = $("<a></a>");
+              let $table = $("<table class='table'><th>Projekt</th><th>Loodud</th><th>Olek</th><th>Mudel</th><th>Alguspunkt</th><th>Algusaeg</th><th>Kustuta</th></table>");
+              for(let i=0;i<projects.length;i++){
+                 let project = projects[i];
+                 let $row = $("<tr></tr>");
+                 let $a = $("<a></a>");
                  $a.attr('href',project.project_path);
                  $a.text(project.project_name);
-                 var $td = $("<td></td>");
+                 let $td = $("<td></td>");
                  $td.append($a);
                  $row.append($td);
                  $td = $("<td></td>");
                  if(project.created_time){
-                    var t = moment(project.created_time);
+                    let t = moment(project.created_time);
                     $td.text(t.fromNow()+" ");
                  }
                  if(new Date().getTime()-new Date(project.created_time).getTime()<20*60*60*1000){
@@ -53,7 +53,7 @@
                  }
                  $row.append($td);
                  $td = $("<td></td>");
-                 var statuselid = "status_"+i;
+                 let statuselid = "status_"+i;
                  $td.attr("id",statuselid);
                  $row.append($td);
                  $td = $("<td></td>");
@@ -94,14 +94,14 @@
     </head>
     <body>
         <div class="container">
-            <h1><a href="/">ADRIFT</a></h1>
-            <p class="lead"><a href="http://www.marine.ie/">Marine Institute</a> predicted sea surface tracking.</p>
-            <p>ADRIFT uses <a href="https://opendrift.github.io/">OpenDrift</a> to simulate the flow of particles using data from the ROMS hydrodynamic model. Visit <a href="http://www.marine.ie/Home/site-area/data-services/marine-forecasts/ocean-forecasts">Marine Institute Ocean Forecasts</a> to find out more.</p>
+            <h1>MSI ADRIFT <img align="right" src="/static/img/KIK_Symbol_varv.png" alt="KIK" width="70" height="70"/><img align="right" src="/static/img/MSI_logo_new_medium.png" alt="MSI" width="70" height="70"/></h1>
+            <p class="lead">Triiviprognoos Eesti merealale</p>
+            <p>ADRIFT baseerub <a href="https://opendrift.github.io/">OpenDrift</a> trajektoorimudelil ja kasutab andmeid Eesti operatiivsetest meremudelitest.</p>
             <div class="row">
                 <div class="col-md-12">
                     <form method="post" action="/project/new">
                         <div class="form-group">
-                        <label class="control-label">Model</label>
+                        <label class="control-label">Mudel</label>
                             <select id="model" name="model" class="form-control">
                               {% for model in models %}
                               <option value="{{ model['id'] }}">{{ model['name'] }}</option>
@@ -109,14 +109,14 @@
                             </select>
                         </div>
                       <div class="form-group">
-                       <button type="submit" class="btn btn-default">Start a New Project</button>
+                       <button type="submit" class="btn btn-default">Uus projekt</button>
                       </div>
                     </form>
                 </div>
             </div>
             <div class="row">
              <div class="col-md-12">
-              <h3>Saved Projects</h3>
+              <h3>Salvestatud projektid</h3>
               <div id="projects"></div>
              </div>
             </div>
