@@ -29,7 +29,7 @@ duration_minutes = int(duration.split(" ")[4])
 
 model = OpenOil(loglevel=20, weathering_model='noaa')
 
-model.set_config('general:use_auto_landmask', False)
+model.set_config('general:use_auto_landmask', True)
 
 """model.set_config('processes:dispersion', True)"""
 """model.set_config('processes:evaporation',  True)"""
@@ -47,11 +47,28 @@ if is_free_particles == True:
     model.disable_vertical_motion()
 
 print('fetching {{opendap_url}}')
-phys = reader_ROMS_native.Reader('{{opendap_url}}')
-print('fetching {{wind_url}}')
-wind = reader_netCDF_CF_generic.Reader('{{wind_url}}')
+"""phys = reader_ROMS_native.Reader('{{opendap_url}}')"""
+phys = reader_netCDF_CF_generic.Reader('{{opendap_url}}', standard_name_mapping={
+                                                            'SSU':'x_sea_water_velocity',
+                                                            'SSV':'y_sea_water_velocity'
+                                                        })
 
-model.add_reader([phys,wind])
+print(f"start_time: {start_time}, {type(start_time)}")
+print(f"end_time: {end_time}")
+
+print('fetching {{wind_url}}')
+"""wind = reader_netCDF_CF_generic.Reader('{{wind_url}}')"""
+wind = reader_netCDF_CF_generic.Reader('{{wind_url}}', standard_name_mapping={
+                                                            'u10':'x_wind',
+                                                            'v10':'y_wind'
+                                                        })
+
+custom_reader = reader_netCDF_CF_generic.Reader('{{wind_url}}', standard_name_mapping={'SSU':'x_sea_water_velocity', 'SSV':'y_sea_water_velocity', 'u10':'x_wind', 'v10':'y_wind'})
+
+
+"""model.add_reader([phys,wind])"""
+model.add_reader(custom_reader)
+print(custom_reader)
 
 object_type = "{{object_type_key}}"
 
@@ -63,7 +80,7 @@ model.seed_elements(lon=longitude,
                     number=N,
                     radius=R,
                     radius_type="uniform",
-                    time=datetime.now(),
+                    time=start_time,
                     biodegradation_half_time_slick=3,
                     biodegradation_half_time_droplet=1,
                     oil_type=object_type,
@@ -92,7 +109,8 @@ model.run(duration=timedelta(hours=duration_hours),
                             "x_wind",
                             "y_wind",
                             "x_sea_water_velocity",
-                            "y_sea_water_velocity"
+                            "y_sea_water_velocity",
+                            "sea_surface_wave_significant_height"
                         ]
         )
 

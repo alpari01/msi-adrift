@@ -21,13 +21,25 @@ R = {{radius}}
     
 """ Model initialization """
 model = Leeway(loglevel=0)
-model.set_config('general:use_auto_landmask', False)
-""" Add readers """
+model.set_config('general:use_auto_landmask', True)
 
+""" Add readers """
 print('fetching {{opendap_url}}')
-phys = reader_ROMS_native.Reader('{{opendap_url}}')
+
+"""phys = reader_ROMS_native.Reader('{{opendap_url}}')"""
+
+phys = reader_netCDF_CF_generic.Reader('{{opendap_url}}', standard_name_mapping={
+                                                        'SSU':'x_sea_water_velocity',
+                                                        'SSV':'y_sea_water_velocity'
+                                                    })
+
 print('fetching {{wind_url}}')
-wind = reader_netCDF_CF_generic.Reader('{{wind_url}}')
+"""wind = reader_netCDF_CF_generic.Reader('{{wind_url}}')"""
+
+wind = reader_netCDF_CF_generic.Reader('{{wind_url}}', standard_name_mapping={
+                                                            'u10':'x_wind',
+                                                            'v10':'y_wind'
+                                                       })
 
 model.add_reader([phys,wind])
 
@@ -37,12 +49,12 @@ print(f"Seeding model with: lon={longitude}, lat={latitude}, z=0, number={N}, ra
 
 """ Seed elements """
 model.seed_elements(lon=longitude,
-                lat=latitude,
-                number=N,
-                radius=R,
-                radius_type="uniform",
-                time=start_time,
-                object_type=object_type
+                    lat=latitude,
+                    number=N,
+                    radius=R,
+                    radius_type="uniform",
+                    time=start_time,
+                    object_type=object_type
                 )
 
         
