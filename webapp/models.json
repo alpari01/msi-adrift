@@ -78,5 +78,25 @@
       "longitude": "lon",
       "time": "time"
     }
+  },
+  "MSI_openoil": {
+    "id": "MSI_openoil",
+    "name": "MSI Openoil",
+    "opendap_url": "./mat_test_nemo31.nc",
+    "wind_url": "./mat_test_nemo31.nc",
+    "defaults": {
+      "latitude": 59.5318,
+      "longitude": 24.6712,
+      "northwest_lat": 60.725,
+      "northwest_lon": 21.55,
+      "southeast_lat": 56.94166666667,
+      "southeast_lon": 30.35
+    },
+    "leeway_drifters": ["GULLFAKS, EXXON", "ARABIAN MEDIUM, API", "ALGERIAN CONDENSATE, STATOIL"],
+    "variables": {
+      "latitude": "lat",
+      "longitude": "lon",
+      "time": "time"
+    }
   }
 }

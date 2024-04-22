@@ -208,6 +208,7 @@ def create_app():
         var_lon = md['variables']['longitude']
         if "opendap_url" in md:
             cdfa = netCDF4.Dataset(md["opendap_url"])
+            print(cdfa)
             cdfz = cdfa
         else:
             pattern = '/input/{0}/*.nc'.format(model)
@@ -489,6 +490,8 @@ def create_app():
                 context[key] = metadata[model][key]
 
         to_hash["context"] = context
+        print("=================================")
+        print(context)
         hash = hashlib.sha224(json.dumps(to_hash, sort_keys=True).encode('utf-8')).hexdigest()
 
         output_file_prefix = "{0}_{1}".format(model, hash)

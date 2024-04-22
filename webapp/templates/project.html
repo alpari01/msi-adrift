@@ -94,7 +94,7 @@
                     type: 'HEAD',
                     success: function () {
                         let imgSrc = window.location.href.replace(/\/project(?!.*\/project)/, "/plots/coastline.gif");
-                        $('#play_coastline').html('<img src="' + imgSrc + '" style="width: 100%; height: 100%;">');
+                        $('#play_coastline').html('<img src="' + imgSrc + '" style="width: 90%; height: 100%;">');
                     },
                     error: function () {
                         $('#play_coastline').html('<p>Error: Failed to load the GIF.</p>');
