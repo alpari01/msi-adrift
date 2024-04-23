@@ -83,7 +83,7 @@
                         $('#play_vertical').html('<img src="' + imgSrc + '" style="width: 100%; height: 80%;">');
                     },
                     error: function () {
-                        $('#play_vertical').html('<p>Error: Failed to load the GIF. Did you tick "Free Particles" checkbox?</p>');
+                        $('#play_vertical').html('<p>Viga: GIF-i laadimine ebaõnnestus. Kas märkisite linnukese "Vabasta osakesed merepõhjast"?</p>');
                     }
                 });
             }
@@ -97,7 +97,7 @@
                         $('#play_coastline').html('<img src="' + imgSrc + '" style="width: 90%; height: 100%;">');
                     },
                     error: function () {
-                        $('#play_coastline').html('<p>Error: Failed to load the GIF.</p>');
+                        $('#play_coastline').html('<p>Viga: GIF-i laadimine ebaõnnestus.</p>');
                     }
                 });
             }
@@ -108,7 +108,7 @@
             $(document).ready(function() {
               function createNewImageDivBlock(imageSrc) {
                   let newDiv = $('<div>');
-                  let heading = $('<h3>').text('Graphs');
+                  let heading = $('<h3>').text('Graafikud');
                   let img = $('<img>');
 
                   img.attr('src', window.location.href.replace(/\/project(?!.*\/project)/, imageSrc));
@@ -164,8 +164,8 @@
         </head>
     <body>
         <div class="container">
-        <h1><a href="/">ADRIFT</a></h1>
-        <p class="lead"><a href="http://www.marine.ie/">Marine Institute</a> predicted sea surface tracking.</p>
+        <h1><a href="/">MSI ADRIFT</a><img align="right" src="/static/img/KIK_Symbol_varv.png" alt="KIK" width="70" height="70"/><img align="right" src="/static/img/MSI_logo_new_medium.png" alt="MSI" width="70" height="70"/></h1>
+        <p class="lead">Triiviprognoos Eesti merealale</p>
         <h3 id="ctx_project_name"></h3>
         <div id="sim-data-rows">
             <div class="row">
@@ -176,39 +176,39 @@
                 <div id="play_coastline" class="map col-md-9" style="display: none;"></div>
                 <div class='col-md-3'>
                     {% if model.endswith('_openoil') %}
-                    <h3>Toggle View</h3>
+                    <h3>Vaade</h3>
                     <button onclick="showHorizontal()">Horizontal</button>
                     <button onclick="showVertical()">Vertical</button>
                     <button onclick="showCoastlineInteraction()">Coastline</button>
                     {% endif %}
-                    <h3>Project Details</h3>
+                    <h3>Projekti üksikasjad</h3>
                     <div class='table-responsive'>
                         <table class="table">
-                            <tr><th class="text-left" id="model_name">Model</th><td id="ctx_model"></td></tr>
-                            <tr><th class="text-left">Drifter</th><td id="ctx_drifter"></td></tr>
-                            <tr><th class="text-left">Location</th><td>{{latitude}}, {{longitude}}</td></tr>
-                            <tr><th class="text-left">Radius</th><td id="ctx_radius"></td></tr>
-                            <tr><th class="text-left">Particles</th><td id="ctx_particles_amount"></td></tr>
+                            <tr><th class="text-left" id="model_name">Mudel</th><td id="ctx_model"></td></tr>
+                            <tr><th class="text-left">Objekt</th><td id="ctx_drifter"></td></tr>
+                            <tr><th class="text-left">Asukoht</th><td>{{latitude}}, {{longitude}}</td></tr>
+                            <tr><th class="text-left">Raadius</th><td id="ctx_radius"></td></tr>
+                            <tr><th class="text-left">Osakeste arv</th><td id="ctx_particles_amount"></td></tr>
                             {% if model.endswith('_openoil') %}
-                            <tr><th class="text-left">Free Particles</th><td id="ctx_is_free_particles"></td></tr>
-                            <tr><th class="text-left">Oil Amount</th><td id="ctx_oil_amount"></td></tr>
+                            <tr><th class="text-left">Vabasata osakesed merepõhjast</th><td id="ctx_is_free_particles"></td></tr>
+                            <tr><th class="text-left">Õli kogus</th><td id="ctx_oil_amount"></td></tr>
                             {% endif %}
-                            <tr><th class="text-left">Created</th><td id="ctx_created_time"></td></tr>
-                            <tr><th class="text-left">Start</th><td id="ctx_start_time"></td></tr>
-                            <tr><th class="text-left">End</th><td id="ctx_end_time"></td></tr>
+                            <tr><th class="text-left">Loodud</th><td id="ctx_created_time"></td></tr>
+                            <tr><th class="text-left">Algus</th><td id="ctx_start_time"></td></tr>
+                            <tr><th class="text-left">Lõpp</th><td id="ctx_end_time"></td></tr>
                         </table>
                     </div>
-                    <h3>Current Display</h3>
+                    <h3>Ekraanil</h3>
                 <div class='table-responsive'>
                     <table class="table">
-                        <tr><th class="text-left">UTC Time</th><td id="utctime"></td></tr>
-                        <tr><th class="text-left">Local Time</th><td id="localtime"></td></tr>
+                        <tr><th class="text-left">UTC aeg</th><td id="utctime"></td></tr>
+                        <tr><th class="text-left">Kohalik aeg</th><td id="localtime"></td></tr>
                     </table>
                 </div>
-               <h3>Downloads</h3>
+               <h3>Allalaadimised</h3>
                <div class='table-responsive'>
                    <table id="downloads" class="table">
-                       <tr><td><a href="output.nc">Generated NetCDF File</a></td></tr>
+                       <tr><td><a href="output.nc">Genereeritud NetCDF fail</a></td></tr>
                    </table>
                </div>
               </div>

@@ -240,25 +240,24 @@
     </head>
     <body>
         <div class="container">
-            <h1><a href="/">ADRIFT</a></h1>
-            <p class="lead"><a href="http://www.marine.ie/">Marine Institute</a> predicted sea surface tracking.</p>
+            <h1><a href="/">MSI ADRIFT</a><img align="right" src="/static/img/KIK_Symbol_varv.png" alt="KIK" width="70" height="70"/><img align="right" src="/static/img/MSI_logo_new_medium.png" alt="MSI" width="70" height="70"/></h1>
+            <p class="lead">Triiviprognoos Eesti merelalale</p>
             <div class="row">
                 <div class="col-md-12">
                     <form id="new_project_form" method="post" action="/api/model/{{model}}/projection">
-                        <h4 style="color: red">DEBUG: {{model}}</h4>
-                        <h4>Enter New Project Start Location <small>or drag marker</small></h4>
+                        <h4>Sisesta uue projekti alguskoht <small>või liiguta märki kaardil</small></h4>
                         <div class="row">
                             <div class="col-md-6">
                              <div class="form-group">
-                               <label class="control-label">Latitude</label>
+                               <label class="control-label">Laiuskraad</label>
                                <input class="form-control" required type="number" size="20" step="any" id="latitude" name="latitude" value="{{latitude}}" >
                              </div>
                              <div class="form-group">
-                               <label class="control-label">Longitude</label>
+                               <label class="control-label">Pikkuskraad</label>
                                <input class="form-control" required type="number" size="20" step="any" id="longitude" name="longitude" value="{{longitude}}" >
                              </div>
                             <div class="form-group">
-                            <label class="control-label">Start Time</label>
+                            <label class="control-label">Algus</label>
                             <div class='input-group date' id='datetimepicker0'>
                               <input class="form-control" required id="start_time_picker" value="{{start_time}}" name="start_time_picker" size="20" type="text" >
                               <span class="input-group-addon">
@@ -275,42 +274,42 @@
                             <input type="hidden" id="start_time" name="start_time" value="{{start_time}}">
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Duration</label>
+                                <label class="control-label">Kestus</label>
                                 <input class="form-control" required id="duration" value="{{duration}}" name="duration" size="20" type="text" >
                                 <input type="hidden" id="end_time" name="end_time" value="{{date_max}}">
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Radius <span id="radius_label"></span> metres </label>
+                                <label class="control-label">Raadius <span id="radius_label"></span> meetrit </label>
                                 <input class="form-control" id="radius" name="radius" data-slider-id='radius' data-slider-tooltip="hide" type="text" data-slider-min="5" data-slider-max="1000" data-slider-step="5" data-slider-value="{{radius}}"/>
                             </div>
                             <div class="form-group">
-                               <label class="control-label">Particles Amount</label>
+                               <label class="control-label">Osakeste arv</label>
                                <input class="form-control" required type="number" size="20" step="any" id="particles_amount" name="particles_amount" value="{{particles_amount}}" >
                              </div>
                             {% if model.endswith('_openoil') %}
                             <div class="form-group">
-                               <label class="control-label">Oil Amount (m³)</label>
+                               <label class="control-label">Õli kogus (m³)</label>
                                <input class="form-control" required type="number" size="20" step="any" id="oil_amount" name="oil_amount" value="{{oil_amount}}" >
                              </div>
                             <div class="form-group">
-                                <label class="control-label">Free Particles From Seabed</label>
+                                <label class="control-label">Vabasta osakesed merepõhjast</label>
                                 <input class="form-control" id="is_free_particles" name="is_free_particles" type="checkbox" style="height: 18px" onchange="updateFreeParticles(this)" value="{{is_free_particles}}"/>
                             </div>
                             {% endif %}
                             <div class="form-group">
-                                <label class="control-label">Start (UTC)</label>
+                                <label class="control-label">Algus (UTC)</label>
                                 <span id="start_time_label"></span>
                                 <br>
-                                <label class="control-label">End (UTC)</label>
+                                <label class="control-label">Lõpp (UTC)</label>
                                 <span id="end_time_label"></span>
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Drifter</label>
+                                <label class="control-label">Objekt</label>
                                 <select  class="form-control" id="object_type" name="object_type"></select>
                             </div>
                                 <div class="form-group">
-                                    <button  type="submit" class="btn btn-default">Submit</button>
-                                    <a href="/" class="btn btn-default">Cancel</a>
+                                    <button  type="submit" class="btn btn-default">Edasi</button>
+                                    <a href="/" class="btn btn-default">Loobu</a>
                                 </div>
                             </div>
                             <div class="col-md-6">

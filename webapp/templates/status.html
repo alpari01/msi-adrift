@@ -38,7 +38,7 @@ var get_status_update = function(){
        if(data == "Finished"){
          document.location.href = document.location.href+"project";
        }else if(data.startsWith("Project failed:")){
-         $("#header").text("This project failed.");
+         $("#header").text("Projekt nurjus");
          $("#animation").hide();
          $.ajax("log.txt", {
            dataType: "text",
@@ -48,7 +48,7 @@ var get_status_update = function(){
            }
          });
        }else{
-         $("#header").text("Building project...");
+         $("#header").text("Loon projekti...");
          $("#status").text(data);
          $("#animation").show();
          setTimeout(get_status_update,500);
@@ -63,12 +63,12 @@ $(document).ready(function(){
 </head>
 <body>
 <div class="container">
-<h1><a href="/">ADRIFT</a></h1>
-<p class="lead"><a href="http://www.marine.ie/">Marine Institute</a> predicted sea surface tracking.</p>
-<h3 id="header">Checking Project Status</h3>
+<h1><a href="/">MSI ADRIFT</a><img align="right" src="/static/img/KIK_Symbol_varv.png" alt="KIK" width="70" height="70"/><img align="right" src="/static/img/MSI_logo_new_medium.png" alt="MSI" width="70" height="70"/></h1>
+<p class="lead">Triivisüsteem Eesti merealale</p>
+<h3 id="header">Kontrollin projekti olekut</h3>
 <div id="status"></div>
 <div id="failed_message" style="display:none">
-<p class="lead">Please review the log messages below to determine what went wrong.</p>
+<p class="lead">Palun vaadake allolevaid logiteateid, et teha kindlaks, mis valesti läks</p>
 <pre id="logs"></pre>
 </div>
 
