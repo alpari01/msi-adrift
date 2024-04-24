@@ -191,7 +191,7 @@ def create_app():
     @app.route('/api/models')
     def models():
         items = []
-        for key, v in _models().iteritems():
+        for key, v in _models().items():
             del v["defaults"]
             items.append(v)
         return jsonify(items)

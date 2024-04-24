@@ -1,4 +1,4 @@
-FROM opendrift/opendrift
+FROM opendrift/opendrift AS builder
 
 MAINTAINER alpari@taltech.ee
 
@@ -10,6 +10,7 @@ COPY requirements.txt requirements.txt
 
 RUN pip3 install Cython
 RUN pip3 install -r requirements.txt
+RUN pip3 install pytest mock coverage
 
 RUN useradd -ms /bin/bash uwsgi
 
