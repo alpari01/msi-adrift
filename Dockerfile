@@ -10,7 +10,7 @@ COPY requirements.txt requirements.txt
 
 RUN pip3 install Cython
 RUN pip3 install -r requirements.txt
-RUN pip3 install pytest mock coverage
+RUN pip3 install pytest pytest-cov mock coverage
 
 RUN useradd -ms /bin/bash uwsgi
 

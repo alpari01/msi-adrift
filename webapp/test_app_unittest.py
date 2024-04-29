@@ -1,5 +1,6 @@
 import unittest
 import json
+import os
 from app import create_app
 
 
@@ -110,3 +111,19 @@ class FlaskTestCase(unittest.TestCase):
         self.assertIn('lon_max', data)
         self.assertIn('polygon', data)
         self.assertIn('drifters', data)
+
+    def test_api_project_new_with_existing_model(self):
+        existing_model = "MSI_leeway"
+        response = self.client.get(f"/project/new?model={existing_model}")
+        self.assertEqual(response.status_code, 200)
+
+    def test_api_project_new_with_nonexisting_model(self):
+        non_existing_model = "non-existing-model"
+        response = self.client.get(f"/project/new?model={non_existing_model}")
+        # If model does not exist user should be redirector to "/" and code should be 302.
+        self.assertEqual(response.status_code, 302)
+
+    def test_api_project_new_with_model_not_provided(self):
+        response = self.client.get("/project/new")
+        # If model is not provided user is redirected to "/" and code should be 302.
+        self.assertEqual(response.status_code, 302)
