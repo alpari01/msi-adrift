@@ -24,4 +24,4 @@ COPY __init__.py /code/opendrift/models/basemodel/
 USER uwsgi
 WORKDIR /webapp
 EXPOSE 8080
-CMD ["uwsgi", "--enable-threads", "--http", ":8080", "--wsgi-file", "wsgi.py"]
+CMD ["uwsgi", "--enable-threads", "--http", "0.0.0.0:8080", "--wsgi-file", "wsgi.py"]
