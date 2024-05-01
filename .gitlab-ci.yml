@@ -16,7 +16,7 @@ test-job1:
   tags:
     - main
   script:
-    - echo "This job tests something!!!"
+    - echo "This job tests something?"
 
 test-job2:
   stage: test
