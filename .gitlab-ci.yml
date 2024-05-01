@@ -10,6 +10,7 @@ build-job:
   tags:
     - main
   script:
+    - echo "Running build job..."
     - docker-compose build
 
 deploy-job:
