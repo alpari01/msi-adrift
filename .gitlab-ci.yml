@@ -20,6 +20,5 @@ deploy-job:
   tags:
     - main
   script:
-    - cd /home/ubuntu/loputoo-2024
     - docker-compose down
     - docker-compose up -d
