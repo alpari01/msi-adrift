@@ -3,7 +3,6 @@ services:
   msi-adrift-project:
     image: msi-adrift:test
     build: ../../.
-    container_name: msi-adrift
     volumes:
       - output_volume:/output
     ports:
