@@ -10,6 +10,7 @@ test-job:
   tags:
     - main
   script:
+    - git pull https://$GITLAB_USER:$GITLAB_PASS@gitlab.cs.taltech.ee/alpari/loputoo-2024.git
     - docker compose -f webapp/test/docker-compose.yml down
     - docker compose -f webapp/test/docker-compose.yml build msi-adrift-project
     - docker compose -f webapp/test/docker-compose.yml up --abort-on-container-exit
@@ -22,8 +23,6 @@ deploy-job:
   tags:
     - main
   script:
-    - ls
-    - cd loputoo-2o24
     - git pull https://$GITLAB_USER:$GITLAB_PASS@gitlab.cs.taltech.ee/alpari/loputoo-2024.git
     - docker-compose down
     - docker-compose up -d
