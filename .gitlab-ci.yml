@@ -22,7 +22,7 @@ deploy-job:
   tags:
     - main
   script:
-    - cd /home/ubuntu/loputoo-2o24
+    - cd /loputoo-2o24
     - git pull https://$GITLAB_USER:$GITLAB_PASS@gitlab.cs.taltech.ee/alpari/loputoo-2024.git
     - docker-compose down
     - docker-compose up -d
