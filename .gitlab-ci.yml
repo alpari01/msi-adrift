@@ -1,13 +1,20 @@
 stages:
   - build
 
-build-job:
+build-image:
   stage: build
   only:
     refs:
       - main
   tags:
     - main
-  image: loputoo-2024-msi-adrift
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - docker login -u $DOCKER_USER -p $DOCKER_PASS
   script:
-    - echo "Running build job...."
+    - docker build -t alpari/msi-adrift:msi-app-1.0 .
+    - docker push alpari/msi-adrift:msi-app-1.0
