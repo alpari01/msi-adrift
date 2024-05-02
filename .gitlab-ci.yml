@@ -1,14 +1,8 @@
-build-job:
-  stage: build
-  only:
-    refs:
-      - main
-  tags:
-    - main
-  script:
-    - echo "Hello, $GITLAB_USER_LOGIN!"
+stages:
+  - test
+  - deploy
 
-test-job1:
+test-job:
   stage: test
   only:
     refs:
@@ -16,22 +10,11 @@ test-job1:
   tags:
     - main
   script:
-    - echo "This job tests something"
+    - docker compose -f webapp/test/docker-compose.yml down
+    - docker compose -f webapp/test/docker-compose.yml build msi-adrift-project
+    - docker compose -f webapp/test/docker-compose.yml up --abort-on-container-exit
 
-test-job2:
-  stage: test
-  only:
-    refs:
-      - main
-  tags:
-    - main
-  script:
-    - echo "This job tests something, but takes more time than test-job1!"
-    - echo "After the echo commands complete, it runs the sleep command for 20 seconds"
-    - echo "which simulates a test that runs 20 seconds longer than test-job1"
-    - sleep 5
-
-deploy-prod:
+deploy-job:
   stage: deploy
   only:
     refs:
@@ -39,5 +22,7 @@ deploy-prod:
   tags:
     - main
   script:
-    - echo "This job deploys something from the $CI_COMMIT_BRANCH branch."
-  environment: production
+    - cd /home/ubuntu/loputoo-2o24
+    - git pull https://$GITLAB_USER:$GITLAB_PASS@gitlab.cs.taltech.ee/alpari/loputoo-2024.git
+    - docker-compose down
+    - docker-compose up -d
