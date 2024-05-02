@@ -1,4 +1,4 @@
-FROM opendrift/opendrift AS builder
+FROM opendrift/opendrift
 
 MAINTAINER alpari@taltech.ee
 
