@@ -1,6 +1,5 @@
 stages:
   - build
-  - deploy
 
 build-job:
   stage: build
@@ -9,17 +8,6 @@ build-job:
       - main
   tags:
     - main
+  image: loputoo-2024-msi-adrift
   script:
     - echo "Running build job...."
-    - docker-compose build
-
-deploy-job:
-  stage: deploy
-  only:
-    refs:
-      - main
-  tags:
-    - main
-  script:
-    - docker-compose down
-    - docker-compose up -d
