@@ -28,4 +28,5 @@ deploy-job:
     - docker-compose down
     - git fetch https://$GITLAB_USER:$GITLAB_PASS@gitlab.cs.taltech.ee/alpari/loputoo-2024.git
     - git pull https://$GITLAB_USER:$GITLAB_PASS@gitlab.cs.taltech.ee/alpari/loputoo-2024.git
+    - docker-compose build
     - docker-compose up -d
