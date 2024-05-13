@@ -21,6 +21,7 @@ from opendrift.readers import reader_netCDF_CF_generic
 import math
 import re
 from threading import Thread
+import time
 
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
@@ -568,6 +569,7 @@ def create_app():
             overwrite_json_file(status_output_path, "Project failed: {0}".format(sys.exc_info()[0]))
 
     def _generate_project(context, status_output_path, log_output_path):
+        start_time_script = time.time()
         release_dir = context["release_dir"]
         output_path = context["output_path"]
         output_file_prefix = context["output_file_prefix"]
@@ -671,6 +673,7 @@ def create_app():
             f.write(";\n")
 
         overwrite_json_file(status_output_path, "Finished")
+        print("Time taken:" + "%.2f seconds" % (time.time() - start_time_script))
 
     def extract_points(url):
         print(f"Extracting points from {url}")
