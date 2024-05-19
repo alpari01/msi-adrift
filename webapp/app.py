@@ -28,6 +28,10 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 LEEWAY_OBJECTS = []
 OPENOIL_OBJECTS = []
 
+MODEL_CONFIG_FILES = {
+    "leeway": "leeway.py.mustache",
+    "openoil": "openoil.py.mustache"
+}
 
 def _init():
     # create object for Leeway model
@@ -209,7 +213,7 @@ def create_app():
         var_lon = md['variables']['longitude']
         if "opendap_url" in md:
             cdfa = netCDF4.Dataset(md["opendap_url"])
-            print(cdfa)
+            print(f"cdfa: {cdfa}")
             cdfz = cdfa
         else:
             pattern = '/input/{0}/*.nc'.format(model)
@@ -223,6 +227,15 @@ def create_app():
 
         (time_min, time_max, lat_min, lat_max, lon_min, lon_max, polygon) = _getrange(cdfa, cdfz, var_time, var_lat,
                                                                                       var_lon)
+        print("NETCDF DATA opendap_url")
+        print(f"time_min: {time_min}\n")
+        print(f"time_max: {time_max}\n")
+        print(f"lat_min: {lat_min}\n")
+        print(f"lat_max: {lat_max}\n")
+        print(f"lon_min: {lon_min}\n")
+        print(f"lon_max: {lon_max}\n")
+        print(f"polygon: {polygon}\n")
+
         if "wind_url" in md:
             cdfx = netCDF4.Dataset(md["wind_url"])
             (wtime_min, wtime_max, *rest) = _getrange(cdfx, cdfx, 'time', 'lat', 'lon')
@@ -343,7 +356,6 @@ def create_app():
             return "ERROR nc_fetch_url can only be used if opendap_url is provided in models.json"
 
         cdfa = netCDF4.Dataset(md["opendap_url"])
-        print(cdfa, file=sys.stderr)
         var_lat = md['variables']['latitude']
         var_lon = md['variables']['longitude']
         var_time = md['variables']['time']
@@ -492,7 +504,7 @@ def create_app():
 
         to_hash["context"] = context
         print("=================================")
-        print(context)
+        print(f"context: {context}")
         hash = hashlib.sha224(json.dumps(to_hash, sort_keys=True).encode('utf-8')).hexdigest()
 
         output_file_prefix = "{0}_{1}".format(model, hash)
@@ -582,10 +594,10 @@ def create_app():
         js_output_path = "{0}/projection.js".format(release_dir)
         nc_output_path = "{0}/output.nc".format(release_dir)
 
-        context["nc_output_path"] = nc_output_path;
+        context["nc_output_path"] = nc_output_path
 
         point_output_path = "{0}/point_{1}.json".format(release_dir, "{0}")
-        if ("nc_fetch_url" in context):
+        if "nc_fetch_url" in context:
             overwrite_json_file(status_output_path,
                                 "nccopy {0} {1}".format(context["nc_fetch_url"], context["nc_input_file"]))
             with open(log_output_path, 'a') as applog:
@@ -603,13 +615,16 @@ def create_app():
         model_type = model.split("_")[-1].lower()
         model_template = None
 
-        if model_type == "leeway":
-            model_template = 'leeway.py.mustache'
+        try:
+            model_template = MODEL_CONFIG_FILES[model_type]
+        except KeyError:
+            print(f"Error: The model type '{model_type}' is not found in the configuration files.")
+        except TypeError as e:
+            print(f"Error: Invalid model type '{model_type}'. Details: {e}")
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
 
-        elif model_type == "openoil":
-            model_template = 'openoil.py.mustache'
-
-        elif context["object_type_key"] == "SEABED":
+        if context["object_type_key"] == "SEABED":
             model_template = 'oceandrift.py.mustache'
 
         if not os.path.isfile(nc_output_path):

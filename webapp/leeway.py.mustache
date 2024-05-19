@@ -18,6 +18,11 @@ start_time = datetime({{start_time_datetime}})
 end_time = datetime({{end_time_datetime}})
 
 R = {{radius}}
+
+duration = "{{duration}}"
+duration_days = int(duration.split(" ")[0])
+duration_hours = int(duration.split(" ")[2])
+duration_minutes = int(duration.split(" ")[4])
     
 """ Model initialization """
 model = Leeway(loglevel=0)
@@ -30,8 +35,9 @@ print('fetching {{opendap_url}}')
 
 phys = reader_netCDF_CF_generic.Reader('{{opendap_url}}', standard_name_mapping={
                                                         'SSU':'x_sea_water_velocity',
-                                                        'SSV':'y_sea_water_velocity'
+                                                        'SSV':'y_sea_water_velocity',
                                                     })
+print(f"phys: {phys}")
 
 print('fetching {{wind_url}}')
 """wind = reader_netCDF_CF_generic.Reader('{{wind_url}}')"""
@@ -40,12 +46,14 @@ wind = reader_netCDF_CF_generic.Reader('{{wind_url}}', standard_name_mapping={
                                                             'u10':'x_wind',
                                                             'v10':'y_wind'
                                                        })
+print(f"wind: {wind}")
 
 model.add_reader([phys,wind])
 
 object_type = {{object_type}} # {{object_type_key}} {{object_type_description}}
 
 print(f"Seeding model with: lon={longitude}, lat={latitude}, z=0, number={N}, radius={R}, object_type={object_type}")
+print(f"start_time: {start_time}")
 
 """ Seed elements """
 model.seed_elements(lon=longitude,
@@ -57,12 +65,10 @@ model.seed_elements(lon=longitude,
                     object_type=object_type
                 )
 
-        
 """ Model run """
 print('starting model run')
-model.run(end_time=end_time, 
-        time_step=timedelta(minutes=10), 
-        time_step_output=timedelta(minutes=10), 
+model.run(duration=timedelta(hours=duration_hours),
+        time_step=600,
         outfile=filename,
         export_variables=["trajectory", 
                             "time", 
