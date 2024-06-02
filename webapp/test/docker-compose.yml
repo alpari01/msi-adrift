@@ -7,7 +7,7 @@ services:
       - output_volume:/output
     ports:
       - "8080:8080"
-    command: ["pytest", "--cov=.", "--cov-report=term-missing", "test_app_unittest.py"]
+    command: ["pytest", "--cov=app", "--cov-report=term-missing", "test_app_unittest.py"]
 
 volumes:
   output_volume:
