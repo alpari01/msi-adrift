@@ -19,7 +19,7 @@ Follow these steps to launch the application on your machine.
 
 **Step 3**: Go to cloned project repository
 
-```cd loputoo-2024```
+```cd msi-adrift```
 
 **Step 4**: Build docker image
 
